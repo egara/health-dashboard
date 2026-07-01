@@ -1,0 +1,70 @@
+.sidebar {
+  width: 260px;
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 2.5rem 1.5rem 1.5rem;
+}
+
+.sidebar-header h2 {
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  font-size: 1.5rem;
+}
+
+.sidebar-header h2::before {
+  content: '✦ ';
+  color: var(--accent-color);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background-color: var(--accent-color);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.sidebar-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background-color: #fff;
+  color: #000;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}

@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - ./data/node_modules:/app/node_modules
+      - ./data/.next:/app/.next
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev"
