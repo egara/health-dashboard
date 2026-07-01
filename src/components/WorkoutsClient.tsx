@@ -29,7 +29,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   const [filter, setFilter] = useState<string | null>(null);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
 
-  // Estados para fechas personalizadas
+  // States for custom dates
   const [customStart, setCustomStart] = useState(searchParams.get('start') || '');
   const [customEnd, setCustomEnd] = useState(searchParams.get('end') || '');
   const [isCustomDate, setIsCustomDate] = useState(!!(searchParams.get('start')));
@@ -37,7 +37,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   const handleDateFilter = (days: number | null) => {
     setSelectedWorkout(null);
     if (days === null) {
-      // Personalizado
+      // Custom
       setIsCustomDate(true);
       return;
     }
@@ -47,7 +47,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     const start = new Date();
     start.setDate(end.getDate() - days);
     
-    // Actualizar URL
+    // Update URL
     router.push(`/?start=${start.toISOString().split('T')[0]}&end=${end.toISOString().split('T')[0]}`);
   };
 
@@ -58,10 +58,10 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     router.push(`/?start=${start}&end=${end}`);
   };
 
-  // Extraer tipos únicos para los filtros, o usar los por defecto si no hay
+  // Extract unique types for the filters, or use defaults if none exist
   const EXERCISE_TYPES = useMemo(() => {
     const types = new Set(initialWorkouts.map(w => w.type));
-    return Array.from(types).slice(0, 6); // Mostrar max 6 tipos
+    return Array.from(types);
   }, [initialWorkouts]);
 
   const filteredWorkouts = filter 
@@ -69,50 +69,51 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     : [];
 
   return (
-    <div className="workouts-page">
+    <div className="workouts-container">
       <header className="page-header">
-        <h1>Tus Entrenamientos Reales</h1>
-        <p className="subtitle">Datos extraídos directamente de Google Health.</p>
+        <h1>Your Real Workouts</h1>
+        <p className="subtitle">Data extracted directly from Google Health.</p>
       </header>
 
-      {/* 1. Selector de Fechas */}
+      {/* 1. Date Selector */}
       <div className="filter-container glass-panel" style={{ marginBottom: '1rem' }}>
-        <span className="filter-label">1. Periodo de tiempo:</span>
+        <span className="filter-label">1. Time Period:</span>
         <div className="filter-chips">
-          <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 7*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(7)}>7 Días</button>
-          <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 30*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(30)}>30 Días</button>
-          <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 365*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(365)}>1 Año</button>
-          <button className={`chip ${isCustomDate ? 'active' : ''}`} onClick={() => handleDateFilter(null)}>Personalizado...</button>
+          <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 7*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(7)}>7 Days</button>
+          <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 30*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(30)}>30 Days</button>
+          <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 365*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(365)}>1 Year</button>
+          <button className={`chip ${isCustomDate ? 'active' : ''}`} onClick={() => handleDateFilter(null)}>Custom...</button>
         </div>
         
         {isCustomDate && (
           <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <input type="date" className="date-input" value={customStart} onChange={(e) => setCustomStart(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white' }} />
-            <span>hasta</span>
+            <span>to</span>
             <input type="date" className="date-input" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white' }} />
-            <button className="login-btn" onClick={applyCustomDates} style={{ padding: '0.5rem 1rem' }}>Aplicar Filtro</button>
+            <button className="login-btn" onClick={applyCustomDates} style={{ padding: '0.5rem 1rem' }}>Apply Filter</button>
           </div>
         )}
       </div>
 
-      {/* 2. Selector de Ejercicio */}
+      {/* 2. Workout Type Selector */}
       <div className="filter-container glass-panel">
-        <span className="filter-label">2. Selecciona tipo de entrenamiento:</span>
+        <span className="filter-label">2. Select workout type:</span>
         <div className="filter-chips">
           {EXERCISE_TYPES.length > 0 ? EXERCISE_TYPES.map((type) => (
             <button
               key={type}
               className={`chip ${filter === type ? 'active' : ''}`}
               onClick={() => {
-                setFilter(type);
+                setFilter(filter === type ? null : type);
                 setSelectedWorkout(null);
               }}
             >
               {type}
             </button>
           )) : (
-            <span style={{color: 'var(--text-secondary)'}}>No se han encontrado sesiones recientes.</span>
+            <p className="subtitle">No data available yet</p>
           )}
+          {filter && <button className="chip clear-filter" onClick={() => setFilter(null)}>Clear Filter</button>}
         </div>
       </div>
 
@@ -120,7 +121,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
         {filter ? (
           <>
             <div className="list-section glass-panel">
-              <h2>3. Sesiones de {filter}</h2>
+              <h2>3. {filter} Sessions</h2>
               <div className="workout-list">
                 {filteredWorkouts.map((workout) => {
                   const localDate = new Date(workout.rawDateStr);
@@ -146,7 +147,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                   );
                 })}
                 {filteredWorkouts.length === 0 && (
-                  <p className="empty-state">No hay entrenamientos de este tipo.</p>
+                  <p className="empty-state">No workouts found for this type.</p>
                 )}
               </div>
             </div>
@@ -154,17 +155,17 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
             <div className="detail-section glass-panel">
               {selectedWorkout ? (
                 <div className="workout-details">
-                  <h2>4. Detalles de la sesión</h2>
+                  <h2>4. Session Details</h2>
                   <div className="detail-header">
                     <h3>{selectedWorkout.type}</h3>
                     <p suppressHydrationWarning>
-                      {new Date(selectedWorkout.rawDateStr).toLocaleDateString()} a las {new Date(selectedWorkout.rawDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(selectedWorkout.rawDateStr).toLocaleDateString()} at {new Date(selectedWorkout.rawDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   
                   <div className="stats-grid">
                     <div className="stat-box">
-                      <span className="stat-label">Duración</span>
+                      <span className="stat-label">Duration</span>
                       <span className="stat-value">{selectedWorkout.duration}</span>
                     </div>
                     <div className="stat-box highlight">
@@ -172,46 +173,47 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                       <span className="stat-value">{selectedWorkout.cardioLoad}</span>
                     </div>
                     <div className="stat-box">
-                      <span className="stat-label">BPM Medio</span>
+                      <span className="stat-label">Avg BPM</span>
                       <span className="stat-value">{selectedWorkout.avgHeartRate > 0 ? selectedWorkout.avgHeartRate : '--'}</span>
                     </div>
                     <div className="stat-box">
-                      <span className="stat-label">Calorías</span>
+                      <span className="stat-label">Calories</span>
                       <span className="stat-value">{selectedWorkout.calories > 0 ? selectedWorkout.calories : '--'} kcal</span>
                     </div>
                   </div>
                   
                   <div className="extra-details-grid" style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                     <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)' }}>
-                      <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Dispositivo y Origen</h4>
+                      <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Device & Source</h4>
                       <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '2' }}>
-                        <li><strong>Dispositivo:</strong> {selectedWorkout.deviceName}</li>
-                        <li><strong>Plataforma:</strong> {selectedWorkout.platform}</li>
-                        <li><strong>Método de registro:</strong> {selectedWorkout.recordingMethod === 'PASSIVELY_MEASURED' ? 'Automático' : selectedWorkout.recordingMethod}</li>
+                        <li><strong>Device:</strong> {selectedWorkout.deviceName}</li>
+                        <li><strong>Platform:</strong> {selectedWorkout.platform}</li>
+                        <li><strong>Recording Method:</strong> {selectedWorkout.recordingMethod === 'PASSIVELY_MEASURED' ? 'Automatic' : selectedWorkout.recordingMethod}</li>
                       </ul>
                     </div>
 
                     <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)' }}>
-                      <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Zonas Cardíacas</h4>
+                      <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Heart Rate Zones</h4>
                       <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '2' }}>
-                        <li><span style={{color: '#4CAF50'}}>●</span> <strong>Ligera:</strong> {selectedWorkout.zones?.light || 0} min</li>
-                        <li><span style={{color: '#FFC107'}}>●</span> <strong>Moderada:</strong> {selectedWorkout.zones?.moderate || 0} min</li>
-                        <li><span style={{color: '#FF9800'}}>●</span> <strong>Vigorosa:</strong> {selectedWorkout.zones?.vigorous || 0} min</li>
-                        <li><span style={{color: '#F44336'}}>●</span> <strong>Pico:</strong> {selectedWorkout.zones?.peak || 0} min</li>
+                        <li><span style={{color: '#4CAF50'}}>●</span> <strong>Light:</strong> {selectedWorkout.zones?.light || 0} min</li>
+                        <li><span style={{color: '#FFC107'}}>●</span> <strong>Moderate:</strong> {selectedWorkout.zones?.moderate || 0} min</li>
+                        <li><span style={{color: '#FF9800'}}>●</span> <strong>Vigorous:</strong> {selectedWorkout.zones?.vigorous || 0} min</li>
+                        <li><span style={{color: '#F44336'}}>●</span> <strong>Peak:</strong> {selectedWorkout.zones?.peak || 0} min</li>
                       </ul>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="detail-empty">
-                  <p>4. Selecciona un entrenamiento de la lista para ver sus detalles.</p>
+                  <p>4. Select a workout from the list to view its details.</p>
                 </div>
               )}
             </div>
           </>
         ) : (
-          <div className="empty-state glass-panel" style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center' }}>
-            <p>Selecciona un tipo de entrenamiento arriba para comenzar a explorar tus datos.</p>
+          <div className="empty-state glass-panel" style={{ gridColumn: '1 / -1' }}>
+            <h2>Select a category to begin</h2>
+            <p>Choose an exercise type above to view your detailed metrics.</p>
           </div>
         )}
       </div>

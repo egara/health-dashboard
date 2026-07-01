@@ -11,7 +11,7 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          // Permisos (scopes) para la nueva Google Health API (Fitbit data)
+          // Scopes for the new Google Health API (Fitbit data)
           scope: "openid email profile https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly"
         }
       }

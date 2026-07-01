@@ -17,7 +17,7 @@ export default async function Home(props: { searchParams?: any }) {
     )
   }
 
-  // Leer fechas desde la URL (o usar el último año por defecto)
+  // Read dates from URL (or use the last year by default)
   let startDateObj = new Date();
   startDateObj.setFullYear(startDateObj.getFullYear() - 1);
   let endDateObj = new Date();
@@ -25,21 +25,21 @@ export default async function Home(props: { searchParams?: any }) {
   if (searchParams?.start && searchParams?.end) {
     startDateObj = new Date(searchParams.start);
     endDateObj = new Date(searchParams.end);
-    endDateObj.setHours(23, 59, 59, 999); // Final del día
+    endDateObj.setHours(23, 59, 59, 999); // End of day
   }
 
   const startDateIso = startDateObj.toISOString();
   const endDateIso = endDateObj.toISOString();
 
-  // Formato "Civil" requerido por Google (sin la 'Z' ni milisegundos al final)
+  // "Civil" format required by Google (without the 'Z' or milliseconds at the end)
   const startCivil = startDateIso.substring(0, 19);
   const endCivil = endDateIso.substring(0, 19);
 
-  // Nueva Google Health API (Fitbit unificado)
-  // Añadimos filtro de fechas. Formato requerido por la API:
+  // New Google Health API (Unified Fitbit)
+  // Add date filter. Format required by the API:
   const filterQuery = encodeURIComponent(`exercise.interval.civil_start_time >= "${startCivil}" AND exercise.interval.civil_start_time < "${endCivil}"`);
   
-  // ¡CLAVE! Añadimos pageSize=500 para evitar el límite oculto de 25 resultados por defecto de Google
+  // KEY! Add pageSize=500 to avoid the hidden default limit of 25 results from Google
   const url = `https://health.googleapis.com/v4/users/me/dataTypes/exercise/dataPoints?pageSize=500&filter=${filterQuery}`;
 
   // Fetch real sessions from Google Health API
@@ -55,25 +55,25 @@ export default async function Home(props: { searchParams?: any }) {
     console.error("Failed to fetch Google Health API", errorText);
     return (
       <div style={{padding: '3rem', color: 'var(--danger-color)'}}>
-        <h2>Error de conexión a la nueva API</h2>
-        <p>Asegúrate de haber aceptado los nuevos permisos de Google Health.</p>
+        <h2>Connection Error to the new API</h2>
+        <p>Make sure you have accepted the new Google Health permissions.</p>
         <p style={{fontSize: '0.8rem', marginTop: '1rem'}}>{errorText.substring(0, 200)}</p>
       </div>
     )
   }
 
   const data = await res.json()
-  console.log("\n--- DEBUG NUEVA API GOOGLE HEALTH ---");
-  console.log("Ejercicios encontrados:", data.dataPoints?.length || 0);
+  console.log("\n--- DEBUG NEW GOOGLE HEALTH API ---");
+  console.log("Workouts found:", data.dataPoints?.length || 0);
   if (data.dataPoints?.length > 0) {
-    console.log("Estructura completa de UN ejercicio para buscar Cardio Load:");
+    console.log("Complete structure of ONE workout to find Cardio Load:");
     console.log(JSON.stringify(data.dataPoints[0], null, 2));
   }
   console.log("-------------------------------------\n");
   
-  // Transform data (adaptado de forma segura al nuevo esquema)
+  // Transform data (safely adapted to the new schema)
   const realWorkouts = (data.dataPoints || []).map((point: any, index: number) => {
-    // En la nueva API, los datos suelen venir envueltos en 'point.exercise'
+    // In the new API, data is usually wrapped in 'point.exercise'
     const exerciseData = point.exercise || point;
     const interval = exerciseData.interval || {};
 
@@ -83,24 +83,29 @@ export default async function Home(props: { searchParams?: any }) {
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
     
-    // Calcular duración exacta
+    // Calculate exact duration
     const diffSecs = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
     const mins = Math.floor(diffSecs / 60);
     const secs = diffSecs % 60;
     const durationExact = `${mins} min ${secs} s`;
     
-    // El tipo de ejercicio suele venir en exerciseType (ej: "WALKING", "RUNNING")
-    let exerciseName = exerciseData.exerciseType || "Entrenamiento";
+    // The exercise type is usually found in exerciseType (e.g. "WALKING", "RUNNING")
+    let exerciseName = exerciseData.exerciseType || "Workout";
+    // If it's uppercase, format it nicely
+    if (typeof exerciseName === 'string') {
+      exerciseName = exerciseName.charAt(0).toUpperCase() + exerciseName.slice(1).toLowerCase();
+    }
+    
     const metrics = exerciseData.metricsSummary || {};
     const realCalories = Math.round(metrics.caloriesKcal || 0);
     const realHeartRate = parseInt(metrics.averageHeartRateBeatsPerMinute) || 0;
-    // En el ecosistema Google/Fitbit, el Cardio Load se traduce como Active Zone Minutes
+    // In the Google/Fitbit ecosystem, Cardio Load translates to Active Zone Minutes
     const realCardioLoad = parseInt(metrics.activeZoneMinutes) || 0;
 
-    // Extraer datos adicionales
-    const deviceName = point.dataSource?.device?.displayName || "Desconocido";
-    const platform = point.dataSource?.platform || "Desconocido";
-    const recordingMethod = point.dataSource?.recordingMethod || "Desconocido";
+    // Extract additional data
+    const deviceName = point.dataSource?.device?.displayName || "Unknown";
+    const platform = point.dataSource?.platform || "Unknown";
+    const recordingMethod = point.dataSource?.recordingMethod || "Unknown";
     
     const zones = metrics.heartRateZoneDurations || {};
     const lightTime = parseInt(zones.lightTime) || 0;
@@ -111,7 +116,7 @@ export default async function Home(props: { searchParams?: any }) {
     return {
       id: point.name || point.id || `workout-${index}`,
       type: exerciseName,
-      rawDateStr: startDate.toISOString(), // Pasamos la fecha en crudo para que el navegador la convierta a hora local
+      rawDateStr: startDate.toISOString(), // Pass raw date string so the browser converts it to local time
       duration: durationExact,
       cardioLoad: realCardioLoad, 
       avgHeartRate: realHeartRate,
@@ -128,11 +133,11 @@ export default async function Home(props: { searchParams?: any }) {
     }
   })
   .filter((w: any) => {
-    // Filtrado local exacto
+    // Exact local filtering
     const wDate = new Date(w.rawDateStr);
     return wDate >= startDateObj && wDate <= endDateObj;
   })
-  .sort((a: any, b: any) => new Date(b.rawDateStr).getTime() - new Date(a.rawDateStr).getTime()); // Ordenar descendente
+  .sort((a: any, b: any) => new Date(b.rawDateStr).getTime() - new Date(a.rawDateStr).getTime()); // Sort descending
 
   return <WorkoutsClient initialWorkouts={realWorkouts} />
 }

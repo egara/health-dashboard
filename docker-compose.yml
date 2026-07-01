@@ -9,6 +9,8 @@ services:
       - .:/app
       - ./data/node_modules:/app/node_modules
       - ./data/.next:/app/.next
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
     command: sh -c "npm install && npm run dev"
