@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Workout } from '@/types';
+import DonutChart from './DonutChart';
 import '../app/Workouts.css';
 
 const getWorkoutIcon = (type: string) => {
@@ -84,6 +85,86 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   const filteredWorkouts = filter 
     ? initialWorkouts.filter((w) => w.type === filter)
     : [];
+
+  const CHART_COLORS = [
+    '#4CAF50', '#2196F3', '#FF9800', '#E91E63', 
+    '#9C27B0', '#00BCD4', '#FFC107', '#F44336'
+  ];
+
+  const distributionData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    initialWorkouts.forEach(w => {
+      counts[w.type] = (counts[w.type] || 0) + 1;
+    });
+
+    return Object.entries(counts).map(([type, count], index) => ({
+      label: type,
+      value: count,
+      color: CHART_COLORS[index % CHART_COLORS.length],
+      icon: getWorkoutIcon(type)
+    }));
+  }, [initialWorkouts]);
+
+  const renderDetailSection = () => (
+    <div className="detail-section glass-panel">
+      {selectedWorkout ? (
+        <div className="workout-details">
+          <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {getWorkoutIcon(selectedWorkout.type)} {selectedWorkout.type}
+            </h3>
+            <p suppressHydrationWarning style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              {new Date(selectedWorkout.rawDateStr).toLocaleDateString()} · {new Date(selectedWorkout.rawDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+          
+          <div className="stats-grid">
+            <div className="stat-box">
+              <span className="stat-label">Duration</span>
+              <span className="stat-value">{selectedWorkout.duration}</span>
+            </div>
+            <div className="stat-box highlight">
+              <span className="stat-label">Cardio Load</span>
+              <span className="stat-value">{selectedWorkout.cardioLoad}</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-label">Avg BPM</span>
+              <span className="stat-value">{selectedWorkout.avgHeartRate > 0 ? selectedWorkout.avgHeartRate : '--'}</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-label">Calories</span>
+              <span className="stat-value">{selectedWorkout.calories > 0 ? selectedWorkout.calories : '--'} kcal</span>
+            </div>
+          </div>
+          
+          <div className="extra-details-grid" style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+            <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)' }}>
+              <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Device & Source</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '2' }}>
+                <li><strong>Device:</strong> {selectedWorkout.deviceName}</li>
+                <li><strong>Platform:</strong> {selectedWorkout.platform}</li>
+                <li><strong>Recording Method:</strong> {selectedWorkout.recordingMethod === 'PASSIVELY_MEASURED' ? 'Automatic' : selectedWorkout.recordingMethod}</li>
+              </ul>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)' }}>
+              <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Heart Rate Zones</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '2' }}>
+                <li><span style={{color: '#4CAF50'}}>●</span> <strong>Light:</strong> {selectedWorkout.zones?.light || 0} min</li>
+                <li><span style={{color: '#FFC107'}}>●</span> <strong>Moderate:</strong> {selectedWorkout.zones?.moderate || 0} min</li>
+                <li><span style={{color: '#FF9800'}}>●</span> <strong>Vigorous:</strong> {selectedWorkout.zones?.vigorous || 0} min</li>
+                <li><span style={{color: '#F44336'}}>●</span> <strong>Peak:</strong> {selectedWorkout.zones?.peak || 0} min</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="detail-empty" style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+          <p>Select a session to view details</p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="workouts-container">
@@ -173,69 +254,81 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
               </div>
             </div>
 
-            <div className="detail-section glass-panel">
-              {selectedWorkout ? (
-                <div className="workout-details">
-                  <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {getWorkoutIcon(selectedWorkout.type)} {selectedWorkout.type}
-                    </h3>
-                    <p suppressHydrationWarning style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                      {new Date(selectedWorkout.rawDateStr).toLocaleDateString()} · {new Date(selectedWorkout.rawDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                  
-                  <div className="stats-grid">
-                    <div className="stat-box">
-                      <span className="stat-label">Duration</span>
-                      <span className="stat-value">{selectedWorkout.duration}</span>
-                    </div>
-                    <div className="stat-box highlight">
-                      <span className="stat-label">Cardio Load</span>
-                      <span className="stat-value">{selectedWorkout.cardioLoad}</span>
-                    </div>
-                    <div className="stat-box">
-                      <span className="stat-label">Avg BPM</span>
-                      <span className="stat-value">{selectedWorkout.avgHeartRate > 0 ? selectedWorkout.avgHeartRate : '--'}</span>
-                    </div>
-                    <div className="stat-box">
-                      <span className="stat-label">Calories</span>
-                      <span className="stat-value">{selectedWorkout.calories > 0 ? selectedWorkout.calories : '--'} kcal</span>
-                    </div>
-                  </div>
-                  
-                  <div className="extra-details-grid" style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                    <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)' }}>
-                      <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Device & Source</h4>
-                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '2' }}>
-                        <li><strong>Device:</strong> {selectedWorkout.deviceName}</li>
-                        <li><strong>Platform:</strong> {selectedWorkout.platform}</li>
-                        <li><strong>Recording Method:</strong> {selectedWorkout.recordingMethod === 'PASSIVELY_MEASURED' ? 'Automatic' : selectedWorkout.recordingMethod}</li>
-                      </ul>
-                    </div>
-
-                    <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)' }}>
-                      <h4 style={{ marginBottom: '1rem', color: 'var(--primary-color)', fontSize: '1.1rem' }}>Heart Rate Zones</h4>
-                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '2' }}>
-                        <li><span style={{color: '#4CAF50'}}>●</span> <strong>Light:</strong> {selectedWorkout.zones?.light || 0} min</li>
-                        <li><span style={{color: '#FFC107'}}>●</span> <strong>Moderate:</strong> {selectedWorkout.zones?.moderate || 0} min</li>
-                        <li><span style={{color: '#FF9800'}}>●</span> <strong>Vigorous:</strong> {selectedWorkout.zones?.vigorous || 0} min</li>
-                        <li><span style={{color: '#F44336'}}>●</span> <strong>Peak:</strong> {selectedWorkout.zones?.peak || 0} min</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+            {renderDetailSection()}
+          </>
+        ) : searchParams.has('start') ? (
+          <div className="overview-section" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Chart Panel (Full width) */}
+            <div className="glass-panel" style={{ padding: '2rem' }}>
+              <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem' }}>
+                Workout Distribution
+              </h2>
+              {initialWorkouts.length > 0 ? (
+                <DonutChart data={distributionData} />
               ) : (
-                <div className="detail-empty" style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                  <p>Select a session to view details</p>
+                <div className="empty-state" style={{ padding: '3rem 0' }}>
+                  <p>No workouts found for this period.</p>
                 </div>
               )}
             </div>
-          </>
+
+            {/* Split layout for List and Details */}
+            {initialWorkouts.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem' }}>
+                {/* All Sessions List Panel */}
+                <div className="glass-panel list-section" style={{ padding: '2rem' }}>
+                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>All Sessions</h2>
+                  <div className="workout-list" style={{ maxHeight: selectedWorkout ? '400px' : '500px' }}>
+                    {initialWorkouts.map((workout) => {
+                      const localDate = new Date(workout.rawDateStr);
+                      const displayDate = localDate.toLocaleDateString();
+                      const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      
+                      return (
+                        <div 
+                          key={workout.id} 
+                          className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''}`} 
+                          onClick={() => setSelectedWorkout(workout)}
+                        >
+                        <div className="workout-card-header" style={{ marginBottom: '0.5rem' }}>
+                          <span style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {getWorkoutIcon(workout.type)} {workout.type}
+                          </span>
+                          <span className="workout-date" suppressHydrationWarning>{displayDate} - {displayTime}</span>
+                        </div>
+                        <div className="workout-card-body" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                          <div className="metric">
+                            <span className="metric-value">{workout.cardioLoad}</span>
+                            <span className="metric-label">Cardio Load</span>
+                          </div>
+                          {workout.duration && (
+                            <div className="metric">
+                              <span className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{workout.duration}</span>
+                              <span className="metric-label">Duration</span>
+                            </div>
+                          )}
+                          {workout.calories > 0 && (
+                            <div className="metric">
+                              <span className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{workout.calories}</span>
+                              <span className="metric-label">Kcal</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Right side details pane */}
+                {selectedWorkout && renderDetailSection()}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="empty-state glass-panel" style={{ gridColumn: '1 / -1' }}>
-            <h2>Select a category to begin</h2>
-            <p>Choose an exercise type above to view your detailed metrics.</p>
+            <h2>Welcome to your Dashboard</h2>
+            <p>Please select a time period, an exercise type, or both from the filters above to view your metrics and distribution.</p>
           </div>
         )}
       </div>
