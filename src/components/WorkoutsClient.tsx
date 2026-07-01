@@ -4,6 +4,22 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Workout } from '@/types';
 import '../app/Workouts.css';
 
+const getWorkoutIcon = (type: string) => {
+  const t = type.toLowerCase();
+  if (t.includes('run')) return '🏃‍♂️';
+  if (t.includes('walk')) return '🚶‍♂️';
+  if (t.includes('cycl') || t.includes('bik') || t.includes('spin')) return '🚴‍♂️';
+  if (t.includes('swim')) return '🏊‍♂️';
+  if (t.includes('weight') || t.includes('strength')) return '🏋️‍♂️';
+  if (t.includes('yoga')) return '🧘‍♂️';
+  if (t.includes('elliptical')) return '⛷️';
+  if (t.includes('hike') || t.includes('climb')) return '🧗‍♂️';
+  if (t.includes('dance')) return '💃';
+  if (t.includes('aerobic')) return '🤸‍♂️';
+  if (t.includes('workout')) return '💪';
+  return '🏅';
+};
+
 /**
  * Client Component: WorkoutsClient
  * Handles the interactive dashboard UI including date filtering,
@@ -71,19 +87,17 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
 
   return (
     <div className="workouts-container">
-      <header className="page-header">
-        <h1>Your Real Workouts</h1>
-        <p className="subtitle">Data extracted directly from Google Health.</p>
+      <header className="page-header" style={{ marginBottom: '1rem' }}>
+        <h1>Workouts</h1>
       </header>
 
-      {/* 1. Date Selector */}
-      <div className="filter-container glass-panel" style={{ marginBottom: '1rem' }}>
-        <span className="filter-label">1. Time Period:</span>
+      {/* Date Selector */}
+      <div className="filter-container glass-panel" style={{ marginBottom: '1rem', padding: '1rem' }}>
         <div className="filter-chips">
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 7*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(7)}>7 Days</button>
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 30*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(30)}>30 Days</button>
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 365*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(365)}>1 Year</button>
-          <button className={`chip ${isCustomDate ? 'active' : ''}`} onClick={() => handleDateFilter(null)}>Custom...</button>
+          <button className={`chip ${isCustomDate ? 'active' : ''}`} onClick={() => handleDateFilter(null)}>Custom</button>
         </div>
         
         {isCustomDate && (
@@ -96,23 +110,24 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
         )}
       </div>
 
-      {/* 2. Workout Type Selector */}
-      <div className="filter-container glass-panel">
-        <span className="filter-label">2. Select workout type:</span>
+      {/* Workout Type Selector */}
+      <div className="filter-container glass-panel" style={{ padding: '1rem' }}>
         <div className="filter-chips">
           {EXERCISE_TYPES.length > 0 ? EXERCISE_TYPES.map((type) => (
             <button
               key={type}
+              title={type}
               className={`chip ${filter === type ? 'active' : ''}`}
+              style={{ fontSize: '1.5rem', padding: '0.5rem 1rem' }}
               onClick={() => {
                 setFilter(filter === type ? null : type);
                 setSelectedWorkout(null);
               }}
             >
-              {type}
+              {getWorkoutIcon(type)}
             </button>
           )) : (
-            <p className="subtitle">No data available yet</p>
+            <p className="subtitle" style={{ margin: 0 }}>No data</p>
           )}
           {filter && <button className="chip clear-filter" onClick={() => setFilter(null)}>Clear Filter</button>}
         </div>
@@ -122,7 +137,9 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
         {filter ? (
           <>
             <div className="list-section glass-panel">
-              <h2>3. {filter} Sessions</h2>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                {filter}
+              </h2>
               <div className="workout-list">
                 {filteredWorkouts.map((workout) => {
                   const localDate = new Date(workout.rawDateStr);
@@ -156,11 +173,12 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
             <div className="detail-section glass-panel">
               {selectedWorkout ? (
                 <div className="workout-details">
-                  <h2>4. Session Details</h2>
-                  <div className="detail-header">
-                    <h3>{selectedWorkout.type}</h3>
-                    <p suppressHydrationWarning>
-                      {new Date(selectedWorkout.rawDateStr).toLocaleDateString()} at {new Date(selectedWorkout.rawDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {getWorkoutIcon(selectedWorkout.type)} {selectedWorkout.type}
+                    </h3>
+                    <p suppressHydrationWarning style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      {new Date(selectedWorkout.rawDateStr).toLocaleDateString()} · {new Date(selectedWorkout.rawDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   
@@ -205,8 +223,8 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                   </div>
                 </div>
               ) : (
-                <div className="detail-empty">
-                  <p>4. Select a workout from the list to view its details.</p>
+                <div className="detail-empty" style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                  <p>Select a session to view details</p>
                 </div>
               )}
             </div>

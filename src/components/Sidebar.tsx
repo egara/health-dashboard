@@ -17,8 +17,7 @@ export default function Sidebar() {
 
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        {!isCollapsed && <h2>Health Dash</h2>}
+      <div className="sidebar-header" style={{ justifyContent: isCollapsed ? 'center' : 'flex-end' }}>
         <button className="collapse-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
           {isCollapsed ? '➔' : '✕'}
         </button>
