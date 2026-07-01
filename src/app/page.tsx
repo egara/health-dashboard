@@ -19,9 +19,9 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
   if (!session || !session.accessToken) {
     return (
       <div style={{ padding: '3rem', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Bienvenido a Health Dash</h1>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome to Health Dash</h1>
         <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', maxWidth: '600px' }}>
-          Para visualizar tus entrenamientos reales, haz clic en el botón <strong>"Conectar con Google"</strong> del menú lateral.
+          To view your real workouts, click the <strong>"Sign in"</strong> button in the sidebar menu.
         </p>
       </div>
     )
