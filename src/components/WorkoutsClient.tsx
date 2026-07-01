@@ -1,27 +1,18 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Workout } from '@/types';
 import '../app/Workouts.css';
 
-interface Workout {
-  id: string | number;
-  type: string;
-  rawDateStr: string;
-  duration: string;
-  cardioLoad: number;
-  avgHeartRate: number;
-  calories: number;
-  deviceName?: string;
-  platform?: string;
-  recordingMethod?: string;
-  zones?: {
-    light: number;
-    moderate: number;
-    vigorous: number;
-    peak: number;
-  };
-}
-
+/**
+ * Client Component: WorkoutsClient
+ * Handles the interactive dashboard UI including date filtering,
+ * workout type selection, and displaying detailed metrics.
+ * 
+ * @param {Object} props - Component props
+ * @param {Workout[]} props.initialWorkouts - Pre-fetched and filtered workouts from the server
+ * @returns {JSX.Element} The interactive dashboard interface
+ */
 export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: Workout[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,6 +25,12 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   const [customEnd, setCustomEnd] = useState(searchParams.get('end') || '');
   const [isCustomDate, setIsCustomDate] = useState(!!(searchParams.get('start')));
 
+  /**
+   * Applies a preset date filter by updating URL search parameters.
+   * Modifying search params automatically triggers a server re-render in Next.js App Router.
+   * 
+   * @param {number | null} days - Number of days to look back, or null to enable custom date mode
+   */
   const handleDateFilter = (days: number | null) => {
     setSelectedWorkout(null);
     if (days === null) {
@@ -51,6 +48,10 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     router.push(`/?start=${start.toISOString().split('T')[0]}&end=${end.toISOString().split('T')[0]}`);
   };
 
+  /**
+   * Applies the custom date range selected by the user.
+   * Fallbacks to a wide range if inputs are left empty.
+   */
   const applyCustomDates = () => {
     setSelectedWorkout(null);
     const start = customStart || '2000-01-01';

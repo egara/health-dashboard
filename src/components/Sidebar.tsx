@@ -1,35 +1,70 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import './Sidebar.css';
 
+/**
+ * Sidebar Component
+ * Provides collapsible navigation links and handles user authentication state.
+ * 
+ * @returns {JSX.Element} The rendered Sidebar navigation component
+ */
 export default function Sidebar() {
   const { data: session } = useSession();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        <h2>Health Dashboard</h2>
+        {!isCollapsed && <h2>Health Dash</h2>}
+        <button className="collapse-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
+          {isCollapsed ? '➔' : '✕'}
+        </button>
       </div>
-      <nav className="sidebar-nav">
-        <ul>
-          <li className="active"><Link href="/">Workouts</Link></li>
-          <li><Link href="/">Overview</Link></li>
-          <li><Link href="/">Metrics</Link></li>
-          <li><Link href="/">Settings</Link></li>
-        </ul>
-      </nav>
-      <div className="sidebar-footer">
+
+      <div className="sidebar-profile">
         {session ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'center' }}>
-            <button className="login-btn" onClick={() => signOut()}>Sign out</button>
+          <div className="user-profile">
+            {session.user?.image && (
+              <Image 
+                src={session.user.image} 
+                alt="Profile" 
+                className="avatar" 
+                width={isCollapsed ? 32 : 48} 
+                height={isCollapsed ? 32 : 48} 
+                style={{ borderRadius: '50%', transition: 'all 0.3s ease' }}
+              />
+            )}
+            <div className="user-info">
+              <span className="user-name">{session.user?.name}</span>
+              <button className="logout-btn" onClick={() => signOut()}>Sign out</button>
+            </div>
           </div>
         ) : (
-          <Link href="/api/auth/signin" className="login-btn" style={{ display: 'block', textAlign: 'center' }}>
-            Sign in with Google
-          </Link>
+          !isCollapsed && (
+            <Link href="/api/auth/signin" className="login-btn">
+              Sign in
+            </Link>
+          )
         )}
       </div>
+
+      <nav className="sidebar-nav">
+        <Link href="/" className="nav-item active">
+          <span>💪</span> {!isCollapsed && <span>Workouts</span>}
+        </Link>
+        <Link href="/" className="nav-item">
+          <span>📊</span> {!isCollapsed && <span>Overview</span>}
+        </Link>
+        <Link href="/" className="nav-item">
+          <span>📈</span> {!isCollapsed && <span>Metrics</span>}
+        </Link>
+        <Link href="/" className="nav-item">
+          <span>⚙️</span> {!isCollapsed && <span>Settings</span>}
+        </Link>
+      </nav>
     </aside>
   );
 }

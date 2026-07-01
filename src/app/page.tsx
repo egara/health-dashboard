@@ -1,8 +1,18 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "./api/auth/[...nextauth]/route"
 import WorkoutsClient from "@/components/WorkoutsClient"
+import { GoogleHealthDataPoint, Workout } from "@/types"
 
-export default async function Home(props: { searchParams?: any }) {
+/**
+ * Server Component: Home Page
+ * Fetches user session and fetches workout data from the Google Health API.
+ * Maps raw API data into standardized Workout objects and performs server-side filtering.
+ * 
+ * @param {Object} props - Next.js page props
+ * @param {Object} props.searchParams - URL search parameters for date filtering
+ * @returns {JSX.Element} The rendered dashboard page
+ */
+export default async function Home(props: { searchParams?: { [key: string]: string | undefined } }) {
   const searchParams = await props.searchParams;
   const session = await getServerSession(authOptions) as any;
 
@@ -72,7 +82,9 @@ export default async function Home(props: { searchParams?: any }) {
   console.log("-------------------------------------\n");
   
   // Transform data (safely adapted to the new schema)
-  const realWorkouts = (data.dataPoints || []).map((point: any, index: number) => {
+  const rawDataPoints: GoogleHealthDataPoint[] = data.dataPoints || [];
+  
+  const realWorkouts: Workout[] = rawDataPoints.map((point, index) => {
     // In the new API, data is usually wrapped in 'point.exercise'
     const exerciseData = point.exercise || point;
     const interval = exerciseData.interval || {};
@@ -132,12 +144,12 @@ export default async function Home(props: { searchParams?: any }) {
       }
     }
   })
-  .filter((w: any) => {
+  .filter((w: Workout) => {
     // Exact local filtering
     const wDate = new Date(w.rawDateStr);
     return wDate >= startDateObj && wDate <= endDateObj;
   })
-  .sort((a: any, b: any) => new Date(b.rawDateStr).getTime() - new Date(a.rawDateStr).getTime()); // Sort descending
+  .sort((a: Workout, b: Workout) => new Date(b.rawDateStr).getTime() - new Date(a.rawDateStr).getTime()); // Sort descending
 
   return <WorkoutsClient initialWorkouts={realWorkouts} />
 }
