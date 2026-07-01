@@ -98,6 +98,9 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 30*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(30)}>30 Days</button>
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 365*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(365)}>1 Year</button>
           <button className={`chip ${isCustomDate ? 'active' : ''}`} onClick={() => handleDateFilter(null)}>Custom</button>
+          {searchParams.has('start') && (
+            <button className="chip clear-filter-btn" onClick={() => router.push('/')}>Clear Filter</button>
+          )}
         </div>
         
         {isCustomDate && (
@@ -111,7 +114,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
       </div>
 
       {/* Workout Type Selector */}
-      <div className="filter-container glass-panel" style={{ padding: '1rem' }}>
+      <div className="filter-container glass-panel" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
         <div className="filter-chips">
           {EXERCISE_TYPES.length > 0 ? EXERCISE_TYPES.map((type) => (
             <button
@@ -129,7 +132,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
           )) : (
             <p className="subtitle" style={{ margin: 0 }}>No data</p>
           )}
-          {filter && <button className="chip clear-filter" onClick={() => setFilter(null)}>Clear Filter</button>}
+          {filter && <button className="chip clear-filter-btn" onClick={() => setFilter(null)}>Clear Filter</button>}
         </div>
       </div>
 
