@@ -229,15 +229,19 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                   const localDate = new Date(workout.rawDateStr);
                   const displayDate = localDate.toLocaleDateString();
                   const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  const isToday = localDate.toDateString() === new Date().toDateString();
                   
                   return (
                     <div 
                       key={workout.id} 
-                      className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''}`}
+                      className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''}`}
                       onClick={() => setSelectedWorkout(workout)}
                     >
                       <div className="workout-card-header">
-                        <span className="workout-date" suppressHydrationWarning>{displayDate} - {displayTime}</span>
+                        <span className="workout-date" suppressHydrationWarning>
+                          {isToday && <span className="today-badge">TODAY</span>}
+                          {displayDate} - {displayTime}
+                        </span>
                       </div>
                       <div className="workout-card-body">
                         <div className="metric">
@@ -283,18 +287,22 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                       const localDate = new Date(workout.rawDateStr);
                       const displayDate = localDate.toLocaleDateString();
                       const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      const isToday = localDate.toDateString() === new Date().toDateString();
                       
                       return (
                         <div 
                           key={workout.id} 
-                          className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''}`} 
+                          className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''}`} 
                           onClick={() => setSelectedWorkout(workout)}
                         >
                         <div className="workout-card-header" style={{ marginBottom: '0.5rem' }}>
                           <span style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             {getWorkoutIcon(workout.type)} {workout.type}
                           </span>
-                          <span className="workout-date" suppressHydrationWarning>{displayDate} - {displayTime}</span>
+                          <span className="workout-date" suppressHydrationWarning>
+                            {isToday && <span className="today-badge">TODAY</span>}
+                            {displayDate} - {displayTime}
+                          </span>
                         </div>
                         <div className="workout-card-body" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                           <div className="metric">
