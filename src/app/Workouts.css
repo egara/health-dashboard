@@ -122,6 +122,24 @@
   box-shadow: 0 0 0 1px var(--accent-color);
 }
 
+@keyframes highlightFlash {
+  0% {
+    background-color: rgba(59, 130, 246, 0.8);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 1);
+    border-color: #fff;
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 1px var(--accent-color);
+    transform: scale(1);
+  }
+}
+
+.workout-card.highlight-flash {
+  animation: highlightFlash 1.5s ease-out forwards;
+}
+
 .workout-card.today {
   border-color: rgba(16, 185, 129, 0.4);
   background: linear-gradient(145deg, rgba(16,185,129,0.08), rgba(0,0,0,0.2));

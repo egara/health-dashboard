@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Workout } from '@/types';
 import DonutChart from './DonutChart';
+import WorkoutCalendar from './WorkoutCalendar';
 import '../app/Workouts.css';
 
 const getWorkoutIcon = (type: string) => {
@@ -36,6 +37,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   
   const [filter, setFilter] = useState<string | null>(null);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
+  const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
 
   // States for custom dates
   const [customStart, setCustomStart] = useState(searchParams.get('start') || '');
@@ -219,47 +221,87 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
 
       <div className="dashboard-grid">
         {filter ? (
-          <>
-            <div className="list-section glass-panel">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', marginBottom: '1rem' }}>
-                {filter}
-              </h2>
-              <div className="workout-list">
-                {filteredWorkouts.map((workout) => {
-                  const localDate = new Date(workout.rawDateStr);
-                  const displayDate = localDate.toLocaleDateString();
-                  const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                  const isToday = localDate.toDateString() === new Date().toDateString();
-                  
-                  return (
-                    <div 
-                      key={workout.id} 
-                      className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''}`}
-                      onClick={() => setSelectedWorkout(workout)}
-                    >
-                      <div className="workout-card-header">
-                        <span className="workout-date" suppressHydrationWarning>
-                          {isToday && <span className="today-badge">TODAY</span>}
-                          {displayDate} - {displayTime}
-                        </span>
-                      </div>
-                      <div className="workout-card-body">
-                        <div className="metric">
-                          <span className="metric-value">{workout.cardioLoad}</span>
-                          <span className="metric-label">Cardio Load</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {filteredWorkouts.length === 0 && (
-                  <p className="empty-state">No workouts found for this type.</p>
-                )}
-              </div>
+          <div className="overview-section" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Calendar Panel (Full width) */}
+            <div className="glass-panel" style={{ padding: '2rem' }}>
+              <WorkoutCalendar 
+                workouts={filteredWorkouts} 
+                selectedType={filter} 
+                onDayClick={(dateStr) => {
+                  const targetWorkouts = filteredWorkouts.filter(w => {
+                    const d = new Date(w.rawDateStr);
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const key = `${d.getFullYear()}-${mm}-${dd}`;
+                    return key === dateStr;
+                  });
+
+                  if (targetWorkouts.length > 0) {
+                    setSelectedWorkout(targetWorkouts[0]);
+                    setHighlightedDate(dateStr);
+                    
+                    // Allow React to render the selection, then scroll smoothly to the first one
+                    setTimeout(() => {
+                      document.getElementById(`workout-card-${targetWorkouts[0].id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50);
+                    
+                    // Clear the flash effect after animation ends
+                    setTimeout(() => {
+                      setHighlightedDate(null);
+                    }, 2000);
+                  }
+                }}
+              />
             </div>
 
-            {renderDetailSection()}
-          </>
+            {/* Split layout for List and Details */}
+            <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem' }}>
+              <div className="list-section glass-panel" style={{ padding: '2rem' }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                  {filter} List
+                </h2>
+                <div className="workout-list" style={{ maxHeight: selectedWorkout ? '400px' : '600px' }}>
+                  {filteredWorkouts.map((workout) => {
+                    const localDate = new Date(workout.rawDateStr);
+                    const displayDate = localDate.toLocaleDateString();
+                    const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const isToday = localDate.toDateString() === new Date().toDateString();
+                    
+                    const mm = String(localDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(localDate.getDate()).padStart(2, '0');
+                    const currentWorkoutDateStr = `${localDate.getFullYear()}-${mm}-${dd}`;
+                    
+                    return (
+                      <div 
+                        id={`workout-card-${workout.id}`}
+                        key={workout.id} 
+                        className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''} ${highlightedDate === currentWorkoutDateStr ? 'highlight-flash' : ''}`}
+                        onClick={() => setSelectedWorkout(workout)}
+                      >
+                        <div className="workout-card-header">
+                          <span className="workout-date" suppressHydrationWarning>
+                            {isToday && <span className="today-badge">TODAY</span>}
+                            {displayDate} - {displayTime}
+                          </span>
+                        </div>
+                        <div className="workout-card-body">
+                          <div className="metric">
+                            <span className="metric-value">{workout.cardioLoad}</span>
+                            <span className="metric-label">Cardio Load</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {filteredWorkouts.length === 0 && (
+                    <p className="empty-state">No workouts found for this type.</p>
+                  )}
+                </div>
+              </div>
+
+              {renderDetailSection()}
+            </div>
+          </div>
         ) : searchParams.has('start') ? (
           <div className="overview-section" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Chart Panel (Full width) */}
