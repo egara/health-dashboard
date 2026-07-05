@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "./api/auth/[...nextauth]/route"
+import Link from "next/link"
 import WorkoutsClient from "@/components/WorkoutsClient"
 import { GoogleHealthDataPoint, Workout } from "@/types"
 
@@ -18,11 +19,77 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
 
   if (!session || !session.accessToken) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Welcome to Health Dash</h1>
-        <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', maxWidth: '600px' }}>
-          To view your real workouts, click the <strong>"Sign in"</strong> button in the sidebar menu.
-        </p>
+      <div className="landing-container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '85vh',
+        position: 'relative',
+        overflow: 'hidden',
+        textAlign: 'center',
+        padding: '2rem'
+      }}>
+        {/* Background decorative glow elements */}
+        <div style={{ position: 'absolute', top: '5%', left: '15%', width: '300px', height: '300px', background: 'var(--primary-color)', filter: 'blur(150px)', opacity: 0.15, borderRadius: '50%' }}></div>
+        <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '400px', height: '400px', background: '#FF9800', filter: 'blur(150px)', opacity: 0.1, borderRadius: '50%' }}></div>
+
+        <div className="glass-panel" style={{
+          maxWidth: '800px',
+          padding: '4rem 3rem',
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1.5rem',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+        }}>
+          <div style={{ fontSize: '5rem', marginBottom: '0.5rem', filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))' }}>⚡️</div>
+          <h1 style={{ 
+            fontSize: 'clamp(2.5rem, 5vw, 4rem)', 
+            fontWeight: 800, 
+            background: 'linear-gradient(135deg, #ffffff 0%, #a0aec0 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            margin: 0,
+            lineHeight: 1.1
+          }}>
+            Personal Health Dashboard
+          </h1>
+          <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', lineHeight: '1.6', maxWidth: '600px', margin: '1rem 0 2rem' }}>
+            A beautiful, minimalist way to visualize your workouts. Sync directly with Google Health to unlock interactive heatmaps, distribution charts, and detailed metrics for every single session.
+          </p>
+          
+          <Link href="/api/auth/signin" style={{
+            padding: '1rem 2.5rem',
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            color: '#fff',
+            background: 'linear-gradient(135deg, var(--primary-color) 0%, #2b6cb0 100%)',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            boxShadow: '0 8px 25px rgba(76, 175, 80, 0.3)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+          className="login-btn-landing"
+          >
+            Sign in with Google <span>➔</span>
+          </Link>
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            .login-btn-landing:hover {
+              transform: translateY(-3px);
+              box-shadow: 0 12px 30px rgba(76, 175, 80, 0.4);
+              filter: brightness(1.1);
+            }
+          `}} />
+        </div>
       </div>
     )
   }
