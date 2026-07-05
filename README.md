@@ -67,17 +67,30 @@ npm install
 npm run dev
 ```
 
-#### Option B: Running with Docker (Recommended)
-If you prefer a clean, containerized deployment, you can use Docker Compose. Ensure you have Docker installed.
+#### Option B: Running with Docker (Recommended for Production)
+If you prefer a clean, containerized deployment, you can use Docker. We provide two configurations: one for production (pulling the pre-built image) and one for development (building locally).
 
-1. Build the image and start the container in detached mode:
+Ensure you have Docker installed and your `.env` file properly configured.
+
+**For Production (Pre-built Image):**
+This uses the lightweight, pre-built image from the GitHub Container Registry.
+1. Use the production compose file:
 ```bash
-docker-compose up -d --build
+docker compose -f docker-compose.prod.yml up -d
 ```
-2. To stop the container or view logs:
+
+**For Development (Local Build):**
+If you want to modify the code and see live changes, use the default development compose file:
+1. Build the image and start the container with local volume mounts:
 ```bash
-docker-compose logs -f
-docker-compose down
+docker compose up -d --build
+```
+
+**Managing the Container:**
+To stop the container or view logs:
+```bash
+docker compose logs -f
+docker compose down
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser. Click **Sign in with Google**, grant the permissions, and enjoy your personal health insights!
