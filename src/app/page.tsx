@@ -146,7 +146,8 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
   // Transform data (safely adapted to the new schema)
   const rawDataPoints: GoogleHealthDataPoint[] = data.dataPoints || [];
   
-  const realWorkouts: Workout[] = rawDataPoints.map((point, index) => {
+  const realWorkouts: Workout[] = rawDataPoints.map((rawPoint, index) => {
+    const point: any = rawPoint;
     // In the new API, data is usually wrapped in 'point.exercise'
     const exerciseData: any = point.exercise || point;
     const interval = exerciseData.interval || {};
