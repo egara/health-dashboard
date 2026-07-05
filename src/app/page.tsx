@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "./api/auth/[...nextauth]/route"
-import Link from "next/link"
+import SignInButton from "@/components/SignInButton"
 import WorkoutsClient from "@/components/WorkoutsClient"
 import { GoogleHealthDataPoint, Workout } from "@/types"
 
@@ -62,25 +62,7 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
             A beautiful, minimalist way to visualize your workouts. Sync directly with Google Health to unlock interactive heatmaps, distribution charts, and detailed metrics for every single session.
           </p>
           
-          <Link href="/api/auth/signin" style={{
-            padding: '1rem 2.5rem',
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            color: '#fff',
-            background: 'linear-gradient(135deg, var(--primary-color) 0%, #2b6cb0 100%)',
-            borderRadius: '12px',
-            textDecoration: 'none',
-            boxShadow: '0 8px 25px rgba(76, 175, 80, 0.3)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
-          className="login-btn-landing"
-          >
-            Sign in with Google <span>➔</span>
-          </Link>
+          <SignInButton />
           
           <style dangerouslySetInnerHTML={{__html: `
             .login-btn-landing:hover {
