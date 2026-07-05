@@ -28,7 +28,7 @@ export default function DonutChart({ data, onSelect }: { data: DonutChartData[],
     <div className="donut-chart-container" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4rem', padding: '1rem' }}>
       {/* SVG Chart */}
       <div style={{ position: 'relative', width: '220px', height: '220px' }}>
-        <svg width="220" height="220" viewBox="0 0 220 220" style={{ transform: 'rotate(-90deg)', dropShadow: '0 8px 16px rgba(0,0,0,0.3)' }}>
+        <svg width="220" height="220" viewBox="0 0 220 220" style={{ transform: 'rotate(-90deg)', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))' }}>
           {/* Background circle */}
           <circle
             cx="110"
