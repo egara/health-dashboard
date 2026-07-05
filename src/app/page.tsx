@@ -53,12 +53,24 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
   const url = `https://health.googleapis.com/v4/users/me/dataTypes/exercise/dataPoints?pageSize=500&filter=${filterQuery}`;
 
   // Fetch real sessions from Google Health API
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${session.accessToken}`
-    },
-    cache: 'no-store'
-  })
+  let res;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`
+      },
+      cache: 'no-store'
+    });
+  } catch (error) {
+    console.error("Network error while fetching from Google Health API", error);
+    return (
+      <div style={{padding: '3rem', color: 'var(--danger-color)'}}>
+        <h2>Network Connection Error</h2>
+        <p>Failed to connect to the Health API. This is usually a temporary network issue or the mock server is offline.</p>
+        <p style={{fontSize: '0.8rem', marginTop: '1rem'}}>{String(error)}</p>
+      </div>
+    )
+  }
   
   if (!res.ok) {
     const errorText = await res.text();
@@ -114,6 +126,25 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
     // In the Google/Fitbit ecosystem, Cardio Load translates to Active Zone Minutes
     const realCardioLoad = parseInt(metrics.activeZoneMinutes) || 0;
 
+    // Try various possible fields for distance, specifically distanceMillimeters for Google Health API
+    const distRaw = metrics.distanceMillimeters || metrics.distanceMeters || metrics.distance || metrics.distanceKm ||
+                    exerciseData.distanceMillimeters || exerciseData.distanceMeters || exerciseData.distance || 
+                    point.distanceMillimeters || point.distanceMeters || point.distance || null;
+                    
+    let distance = null;
+    if (distRaw !== null && distRaw !== undefined) {
+      const parsed = parseFloat(distRaw as string);
+      if (!isNaN(parsed) && parsed > 0) {
+        // If it came from a millimeters field, divide by 1,000,000
+        if (metrics.distanceMillimeters || exerciseData.distanceMillimeters || point.distanceMillimeters) {
+          distance = (parsed / 1000000).toFixed(2) + " km";
+        } else {
+          // Fallback for older distanceMeters or direct km
+          distance = parsed > 100 ? (parsed / 1000).toFixed(2) + " km" : parsed.toFixed(2) + " km";
+        }
+      }
+    }
+
     // Extract additional data
     const deviceName = point.dataSource?.device?.displayName || "Unknown";
     const platform = point.dataSource?.platform || "Unknown";
@@ -133,6 +164,7 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
       cardioLoad: realCardioLoad, 
       avgHeartRate: realHeartRate,
       calories: realCalories,
+      distance,
       deviceName,
       platform,
       recordingMethod,

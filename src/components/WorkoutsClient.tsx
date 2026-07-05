@@ -147,6 +147,18 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
               <span className="stat-label">Calories</span>
               <span className="stat-value">{selectedWorkout.calories > 0 ? selectedWorkout.calories : '--'} kcal</span>
             </div>
+            
+            {(selectedWorkout.type.toLowerCase().includes('walk') || 
+              selectedWorkout.type.toLowerCase().includes('bik') || 
+              selectedWorkout.type.toLowerCase().includes('cycl') || 
+              selectedWorkout.type.toLowerCase().includes('run')) && (
+              <div className="stat-box">
+                <span className="stat-label">Distance</span>
+                <span className="stat-value" style={{ fontSize: selectedWorkout.distance ? '2rem' : '1.2rem' }}>
+                  {selectedWorkout.distance ? selectedWorkout.distance : 'Not available'}
+                </span>
+              </div>
+            )}
           </div>
           
           <div className="extra-details-grid" style={{ marginTop: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>

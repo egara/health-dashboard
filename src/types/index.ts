@@ -25,6 +25,7 @@ export interface Workout {
   cardioLoad: number;
   avgHeartRate: number;
   calories: number;
+  distance?: string | null;
   deviceName: string;
   platform: string;
   recordingMethod: string;
@@ -49,6 +50,8 @@ export interface GoogleHealthDataPoint {
       caloriesKcal?: string | number;
       averageHeartRateBeatsPerMinute?: string | number;
       activeZoneMinutes?: string | number;
+      distanceMeters?: string | number;
+      distanceMillimeters?: string | number;
       heartRateZoneDurations?: {
         lightTime?: string | number;
         moderateTime?: string | number;
