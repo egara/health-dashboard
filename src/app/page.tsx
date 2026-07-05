@@ -148,7 +148,7 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
   
   const realWorkouts: Workout[] = rawDataPoints.map((point, index) => {
     // In the new API, data is usually wrapped in 'point.exercise'
-    const exerciseData = point.exercise || point;
+    const exerciseData: any = point.exercise || point;
     const interval = exerciseData.interval || {};
 
     const startDateStr = interval.civilStartTime || interval.startTime || new Date().toISOString();
