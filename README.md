@@ -1,85 +1,80 @@
-# MyHealth Dashboard
+# 🏃‍♂️ Personal Health Dashboard
 
-A modern, glassmorphism-themed health dashboard built with Next.js (App Router), React, and Docker. It seamlessly connects with the **Google Health API v4** (which unifies Fitbit data) to extract and visualize your real workouts, active zone minutes (Cardio Load), heart rate zones, and calories burned.
+A minimalist, highly aesthetic, and fully customizable personal health dashboard built with Next.js. It integrates directly with the **Google Health / Google Fit API** to fetch your daily activities, workouts, and cardio metrics, displaying them in a sleek glassmorphism UI.
 
-## Features
+![Health Dashboard Preview](https://via.placeholder.com/1000x500.png?text=Personal+Health+Dashboard+UI)
 
-- **Google Health API v4 Integration**: Directly queries `health.googleapis.com` to fetch authentic workout data securely.
-- **Advanced Filtering**: Filter your workouts by dynamic date ranges (7 days, 30 days, 1 year, or custom date pickers).
-- **Activity Specific Metrics**: Detailed breakdown of exercises, including the exact recording device (e.g., Pixel Watch 3), data source (Fitbit), and heart rate zones (Light, Moderate, Vigorous, Peak).
-- **Modern UI**: Dark mode aesthetic with premium glassmorphism styling, micro-animations, and responsive layouts.
-- **Secure Authentication**: Built-in NextAuth.js OAuth integration with Google.
+## ✨ Features
 
-## Prerequisites
+- **Google Health Sync:** Automatically fetches your exercise sessions, active zone minutes, calories, and distances.
+- **Activity Calendar Heatmap:** Visualizes your training frequency over the month (GitHub-style contribution graph).
+- **Distribution Charts:** Interactive Donut charts breaking down your session types (Running, Walking, Biking, etc.).
+- **Dynamic Filtering:** Filter data by preset time ranges (Today, 7 days, 30 days) or select specific workout categories.
+- **Glassmorphism UI:** A premium, modern dark mode interface with smooth micro-animations.
+- **Privacy First:** Designed for self-hosting. Your health data stays directly between Google's servers and your own dashboard.
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- Node.js 20+ (if running outside Docker)
-- A Google Cloud Project with the **Google Health API** enabled and OAuth credentials configured.
+## 🚀 Getting Started
 
-## Getting Started
+This application is designed for **personal use (self-hosting)**. To run it, you'll need to create your own credentials in the Google Cloud Console.
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/myhealth-dashboard.git
-   cd myhealth-dashboard
-   ```
+### 1. Google Cloud Setup (OAuth 2.0)
+Because health data is sensitive, you need to authorize the application to read your profile.
 
-2. **Configure Environment Variables:**
-   This project uses an inverted environment variable setup to protect your secrets:
-   - `.env.local` is committed to the repository and contains fake template values.
-   - `.env` is ignored by Git and should contain your real sensitive data.
-   
-   Create a `.env` file in the root of the project by copying the template:
-   ```bash
-   cp .env.local .env
-   ```
-   
-   Then, edit the `.env` file with your real credentials:
-   ```env
-   # Google OAuth Credentials
-   GOOGLE_CLIENT_ID=your_real_client_id.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your_real_client_secret
-   
-   # NextAuth Secret (generate a random string)
-   NEXTAUTH_SECRET=a_secure_random_string
-   
-   # NextAuth URL (default for local dev)
-   NEXTAUTH_URL=http://localhost:3000
-   ```
-   *Note: Docker Compose is configured to explicitly load `.env`, overriding any fake values from `.env.local`.*
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new Project.
+3. Navigate to **APIs & Services** > **Library** and enable the **Fitness API**.
+4. Navigate to **APIs & Services** > **OAuth consent screen**:
+   - Select **External** user type.
+   - Fill in the required app name and developer email.
+   - Under **Scopes**, add `.../auth/fitness.activity.read` and `.../auth/fitness.location.read` (or any health scopes you require).
+   - Under **Test Users**, add your personal `@gmail.com` address.
+   - **Important:** Leave the Publishing Status as **Testing**. Do not publish the app to avoid Google's strict verification process.
+5. Navigate to **APIs & Services** > **Credentials**:
+   - Create **OAuth client ID** (Application type: Web application).
+   - Add Authorized JavaScript origins: `http://localhost:3000`
+   - Add Authorized redirect URIs: `http://localhost:3000/api/auth/callback/google`
+   - Copy your **Client ID** and **Client Secret**.
 
-3. **Run with Docker:**
-   We use a Docker setup that mounts local volumes for `node_modules` and `.next` to preserve caching and avoid permission issues.
-   
-   First, create the local data directories:
-   ```bash
-   mkdir -p data/node_modules data/.next
-   ```
-   
-   Then, start the application:
-   ```bash
-   docker compose up --build
-   ```
+*(Note: Because the app stays in "Testing" mode, the Google session will expire every 7 days. You will need to click "Sign in" once a week. This is normal for self-hosted apps on standard Google accounts).*
 
-4. **Access the Dashboard:**
-   Open [http://localhost:3000](http://localhost:3000) in your browser. Click "Sign in with Google" and authorize the application to read your health data.
+### 2. Environment Variables
 
-## Google Cloud Console Setup
+Clone the repository and create a `.env.local` file in the root directory:
 
-To use the Google Health API, you must configure your OAuth consent screen:
+```bash
+cp .env.example .env.local
+```
 
-1. Enable the **Google Health API** in your Google Cloud Console.
-2. Go to **APIs & Services > Credentials** and create an **OAuth 2.0 Client ID** for a Web Application.
-3. Add `http://localhost:3000` to Authorized JavaScript origins.
-4. Add `http://localhost:3000/api/auth/callback/google` to Authorized redirect URIs.
-5. In the **OAuth Consent Screen**, make sure you request the following scope:
-   - `https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly`
+Fill it with your credentials:
 
-## Troubleshooting
+```env
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-- **No Workouts Showing Up?** Ensure that your Fitbit or smartwatch is synced with Google Health / Health Connect. Note that Health Connect typically only backfills the last 30 days of history to new apps by default.
-- **Docker `node_modules` Issues:** If you encounter `module not found` errors, clear the local data cache and rebuild: `docker compose down -v` followed by `docker compose up --build`.
+# NextAuth configuration
+# Generate a secret using: openssl rand -base64 32
+NEXTAUTH_SECRET=your_super_secret_key
+NEXTAUTH_URL=http://localhost:3000
+```
 
-## License
+### 3. Installation & Running
 
-MIT License. See [LICENSE](LICENSE) for more information.
+Install the dependencies and start the development server:
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. Click **Sign in with Google**, grant the permissions, and enjoy your personal health insights!
+
+## 🛠 Tech Stack
+
+- **Framework:** [Next.js 14+ (App Router)](https://nextjs.org/)
+- **Authentication:** [NextAuth.js v4](https://next-auth.js.org/)
+- **Styling:** Vanilla CSS (CSS Modules & Global styles)
+- **Data:** Google Health API / Google Fit REST API
+
+## 📝 License
+
+This project is open-source and available under the [MIT License](LICENSE).
