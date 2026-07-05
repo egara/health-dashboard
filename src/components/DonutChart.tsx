@@ -12,10 +12,10 @@ interface DonutChartData {
  * Renders a custom, lightweight SVG donut chart for workout distribution.
  * 
  * @param {Object} props
- * @param {DonutChartData[]} props.data - The data array containing labels, values, colors, and icons
+ * @param {Function} [props.onSelect] - Optional callback when a slice or legend item is clicked
  * @returns {JSX.Element} SVG Donut Chart with Legend
  */
-export default function DonutChart({ data }: { data: DonutChartData[] }) {
+export default function DonutChart({ data, onSelect }: { data: DonutChartData[], onSelect?: (label: string) => void }) {
   const total = data.reduce((acc, item) => acc + item.value, 0);
   let currentOffset = 0;
   const radius = 70;
@@ -62,8 +62,10 @@ export default function DonutChart({ data }: { data: DonutChartData[] }) {
                 strokeLinecap="round"
                 style={{ 
                   transition: 'all 1s cubic-bezier(0.4, 0, 0.2, 1)',
-                  filter: `drop-shadow(0 0 8px ${item.color}40)` 
+                  filter: `drop-shadow(0 0 8px ${item.color}40)`,
+                  cursor: onSelect ? 'pointer' : 'default'
                 }}
+                onClick={() => onSelect && onSelect(item.label)}
               />
             );
           })}
@@ -78,7 +80,18 @@ export default function DonutChart({ data }: { data: DonutChartData[] }) {
       {/* Legend */}
       <div className="chart-legend" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, minWidth: '200px' }}>
         {sortedData.map(item => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}>
+          <div 
+            key={item.label} 
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem', 
+              borderRadius: '8px', background: 'rgba(255,255,255,0.02)',
+              cursor: onSelect ? 'pointer' : 'default',
+              transition: 'background 0.2s ease'
+            }}
+            onClick={() => onSelect && onSelect(item.label)}
+            onMouseEnter={(e) => { if(onSelect) e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+            onMouseLeave={(e) => { if(onSelect) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+          >
             <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}80` }}></div>
             <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
             <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{item.label}</span>

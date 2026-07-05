@@ -346,7 +346,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
 
               {overviewTab === 'chart' ? (
                 initialWorkouts.length > 0 ? (
-                  <DonutChart data={distributionData} />
+                  <DonutChart data={distributionData} onSelect={(label) => setFilter(label)} />
                 ) : (
                   <div className="empty-state" style={{ padding: '3rem 0' }}>
                     <p>No workouts found for this period.</p>
