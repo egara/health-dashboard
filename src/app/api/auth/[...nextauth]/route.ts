@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       // Pasa el token a la sesión para que podamos usarlo al consultar la API de Google Health
-      session.accessToken = token.accessToken
+      session.accessToken = token.accessToken as string | undefined
       return session
     }
   }
