@@ -22,6 +22,12 @@ const getWorkoutIcon = (type: string) => {
   return '🏅';
 };
 
+const getCardioLoadColor = (load: number) => {
+  if (load <= 15) return '#4CAF50'; // Green
+  if (load <= 30) return '#FFC107'; // Yellow
+  return '#F44336'; // Red
+};
+
 /**
  * Client Component: WorkoutsClient
  * Handles the interactive dashboard UI including date filtering,
@@ -144,7 +150,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
             </div>
             <div className="stat-box highlight">
               <span className="stat-label">Cardio Load</span>
-              <span className="stat-value">{selectedWorkout.cardioLoad}</span>
+              <span className="stat-value" style={{ color: getCardioLoadColor(selectedWorkout.cardioLoad) }}>{selectedWorkout.cardioLoad}</span>
             </div>
             <div className="stat-box">
               <span className="stat-label">Avg BPM</span>
@@ -317,7 +323,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                         </div>
                         <div className="workout-card-body">
                           <div className="metric">
-                            <span className="metric-value">{workout.cardioLoad}</span>
+                            <span className="metric-value" style={{ color: getCardioLoadColor(workout.cardioLoad) }}>{workout.cardioLoad}</span>
                             <span className="metric-label">Cardio Load</span>
                           </div>
                         </div>
@@ -428,7 +434,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                         </div>
                         <div className="workout-card-body" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                           <div className="metric">
-                            <span className="metric-value">{workout.cardioLoad}</span>
+                            <span className="metric-value" style={{ color: getCardioLoadColor(workout.cardioLoad) }}>{workout.cardioLoad}</span>
                             <span className="metric-label">Cardio Load</span>
                           </div>
                           {workout.duration && (
