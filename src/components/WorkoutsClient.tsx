@@ -258,38 +258,38 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
       <div className="dashboard-grid">
         {filter ? (
           <div className="overview-section" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Calendar Panel (Full width) */}
-            <div className="glass-panel" style={{ padding: '2rem' }}>
-              <WorkoutCalendar 
-                workouts={filteredWorkouts} 
-                selectedType={filter} 
-                activeDateStr={activeDateStr}
-                onDayClick={(dateStr) => {
-                  const targetWorkouts = filteredWorkouts.filter(w => {
-                    const d = new Date(w.rawDateStr);
-                    const mm = String(d.getMonth() + 1).padStart(2, '0');
-                    const dd = String(d.getDate()).padStart(2, '0');
-                    const key = `${d.getFullYear()}-${mm}-${dd}`;
-                    return key === dateStr;
-                  });
+            {/* Calendar Panel (Full width) - Hidden in Today mode */}
+            {!isTodayMode && (
+              <div className="glass-panel" style={{ padding: '2rem' }}>
+                <WorkoutCalendar 
+                  workouts={filteredWorkouts} 
+                  selectedType={filter} 
+                  activeDateStr={activeDateStr}
+                  onDayClick={(dateStr) => {
+                    const targetWorkouts = filteredWorkouts.filter(w => {
+                      const d = new Date(w.rawDateStr);
+                      const mm = String(d.getMonth() + 1).padStart(2, '0');
+                      const dd = String(d.getDate()).padStart(2, '0');
+                      const key = `${d.getFullYear()}-${mm}-${dd}`;
+                      return key === dateStr;
+                    });
 
-                  if (targetWorkouts.length > 0) {
-                    setSelectedWorkout(targetWorkouts[0]);
-                    setHighlightedDate(dateStr);
-                    
-                    // Allow React to render the selection, then scroll smoothly to the first one
-                    setTimeout(() => {
-                      document.getElementById(`workout-card-${targetWorkouts[0].id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 50);
-                    
-                    // Clear the flash effect after animation ends
-                    setTimeout(() => {
-                      setHighlightedDate(null);
-                    }, 2000);
-                  }
-                }}
-              />
-            </div>
+                    if (targetWorkouts.length > 0) {
+                      setSelectedWorkout(targetWorkouts[0]);
+                      setHighlightedDate(dateStr);
+                      
+                      setTimeout(() => {
+                        document.getElementById(`workout-card-${targetWorkouts[0].id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 50);
+                      
+                      setTimeout(() => {
+                        setHighlightedDate(null);
+                      }, 2000);
+                    }
+                  }}
+                />
+              </div>
+            )}
 
             {/* Split layout for List and Details */}
             <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem', height: '750px' }}>
