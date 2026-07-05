@@ -54,15 +54,6 @@ export default function Sidebar() {
         <Link href="/" className="nav-item active">
           <span>💪</span> {!isCollapsed && <span>Workouts</span>}
         </Link>
-        <Link href="/" className="nav-item">
-          <span>📊</span> {!isCollapsed && <span>Overview</span>}
-        </Link>
-        <Link href="/" className="nav-item">
-          <span>📈</span> {!isCollapsed && <span>Metrics</span>}
-        </Link>
-        <Link href="/" className="nav-item">
-          <span>⚙️</span> {!isCollapsed && <span>Settings</span>}
-        </Link>
       </nav>
     </aside>
   );
