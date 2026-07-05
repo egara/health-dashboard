@@ -1,6 +1,12 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
