@@ -2,8 +2,6 @@
 
 A minimalist, highly aesthetic, and fully customizable personal health dashboard built with Next.js. It integrates directly with the **Google Health / Google Fit API** to fetch your daily activities, workouts, and cardio metrics, displaying them in a sleek glassmorphism UI.
 
-![Health Dashboard Preview](https://via.placeholder.com/1000x500.png?text=Personal+Health+Dashboard+UI)
-
 ## ✨ Features
 
 - **Google Health Sync:** Automatically fetches your exercise sessions, active zone minutes, calories, and distances.
@@ -59,11 +57,27 @@ NEXTAUTH_URL=http://localhost:3000
 
 ### 3. Installation & Running
 
-Install the dependencies and start the development server:
+You must have your `.env.local` file correctly configured before starting the application, otherwise authentication will fail.
+
+#### Option A: Running Locally (Node.js)
+Ensure you have Node.js installed, then run:
 
 ```bash
 npm install
 npm run dev
+```
+
+#### Option B: Running with Docker (Recommended)
+If you prefer a clean, containerized deployment, you can use Docker Compose. Ensure you have Docker installed.
+
+1. Build the image and start the container in detached mode:
+```bash
+docker-compose up -d --build
+```
+2. To stop the container or view logs:
+```bash
+docker-compose logs -f
+docker-compose down
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser. Click **Sign in with Google**, grant the permissions, and enjoy your personal health insights!
