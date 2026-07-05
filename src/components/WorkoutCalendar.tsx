@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Workout } from '@/types';
 
-export default function WorkoutCalendar({ workouts, selectedType, onDayClick }: { workouts: Workout[], selectedType: string, onDayClick?: (dateStr: string) => void }) {
+export default function WorkoutCalendar({ workouts, selectedType, onDayClick, activeDateStr }: { workouts: Workout[], selectedType: string, onDayClick?: (dateStr: string) => void, activeDateStr?: string }) {
   // Initialize to the most recent workout's month, or current month if no workouts
   const [currentDate, setCurrentDate] = useState(() => {
     if (workouts.length > 0) {
@@ -13,6 +13,22 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick }: 
 
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+  // Sync calendar month with activeDateStr if it changes
+  useEffect(() => {
+    if (activeDateStr) {
+      const parts = activeDateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        
+        // Check if we need to navigate
+        if (currentDate.getFullYear() !== year || currentDate.getMonth() !== month) {
+          setCurrentDate(new Date(year, month, 1));
+        }
+      }
+    }
+  }, [activeDateStr, currentDate]);
 
   // Map workouts to a dictionary by YYYY-MM-DD
   const workoutDays = useMemo(() => {
@@ -54,11 +70,20 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick }: 
       
       {/* Header Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1.5rem' }}>
-        <button className="chip" style={{ padding: '0.5rem 1.5rem' }} onClick={prevMonth}>&larr; Prev</button>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-primary)' }}>
-          {monthNames[month]} {year}
-        </h3>
-        <button className="chip" style={{ padding: '0.5rem 1.5rem' }} onClick={nextMonth}>Next &rarr;</button>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+          <button className="chip" style={{ padding: '0.5rem 1.5rem' }} onClick={prevMonth}>&larr; Prev</button>
+        </div>
+        <div style={{ flex: 2, textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-primary)' }}>
+            {monthNames[month]} {year}
+          </h3>
+        </div>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+          {!isCurrentMonth && (
+            <button className="chip" style={{ padding: '0.5rem 1rem', borderColor: 'var(--success-color)', color: 'var(--success-color)' }} onClick={() => setCurrentDate(new Date())}>Today</button>
+          )}
+          <button className="chip" style={{ padding: '0.5rem 1.5rem' }} onClick={nextMonth}>Next &rarr;</button>
+        </div>
       </div>
 
       {/* Days of week header */}
@@ -84,18 +109,25 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick }: 
           let bg = 'rgba(255,255,255,0.03)';
           let border = '1px solid rgba(255,255,255,0.05)';
           let textColor = 'var(--text-secondary)';
-
           let cursor = 'default';
+          let shadow = 'none';
 
           if (count > 0) {
             bg = 'var(--accent-color)';
             textColor = '#fff';
-            border = '1px solid rgba(255,255,255,0.3)';
+            border = isToday ? '2px solid var(--success-color)' : '1px solid rgba(255,255,255,0.3)';
             cursor = 'pointer';
+            shadow = '0 4px 12px rgba(59, 130, 246, 0.4)'; // using standard blue accent glow
           } else if (isToday) {
             bg = 'rgba(255,255,255,0.1)';
-            border = '1px solid var(--text-primary)';
+            border = '2px solid var(--success-color)';
             textColor = 'var(--text-primary)';
+          }
+
+          const isActive = activeDateStr === dateKey;
+          if (isActive) {
+            border = '2px solid #fff';
+            shadow = '0 0 20px rgba(255, 255, 255, 0.8)';
           }
 
           return (
@@ -115,12 +147,14 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick }: 
                 justifyContent: 'center',
                 color: textColor,
                 position: 'relative',
-                boxShadow: count > 0 ? '0 4px 12px rgba(59, 130, 246, 0.4)' : 'none', // using standard blue accent glow
+                boxShadow: shadow,
                 fontWeight: count > 0 ? 800 : 600,
                 transition: 'all 0.2s ease',
-                cursor: cursor
+                cursor: cursor,
+                transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                zIndex: isActive ? 10 : 1
               }}
-              title={count > 0 ? `${count} ${selectedType} session(s)` : 'No workouts'}
+              title={count > 0 ? `${count} ${selectedType === 'Total' ? 'workout' : selectedType} session(s)` : 'No workouts'}
             >
               <span style={{ fontSize: '1.2rem' }}>{day}</span>
               {count > 1 && (

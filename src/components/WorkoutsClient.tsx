@@ -38,6 +38,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   const [filter, setFilter] = useState<string | null>(null);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
   const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
+  const [overviewTab, setOverviewTab] = useState<'chart' | 'calendar'>('chart');
 
   // States for custom dates
   const [customStart, setCustomStart] = useState(searchParams.get('start') || '');
@@ -106,6 +107,15 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
       icon: getWorkoutIcon(type)
     }));
   }, [initialWorkouts]);
+
+  // Compute the active date string from the selected workout for calendar syncing
+  const activeDateStr = useMemo(() => {
+    if (!selectedWorkout) return undefined;
+    const d = new Date(selectedWorkout.rawDateStr);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }, [selectedWorkout]);
 
   const renderDetailSection = () => (
     <div className="detail-section glass-panel">
@@ -227,6 +237,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
               <WorkoutCalendar 
                 workouts={filteredWorkouts} 
                 selectedType={filter} 
+                activeDateStr={activeDateStr}
                 onDayClick={(dateStr) => {
                   const targetWorkouts = filteredWorkouts.filter(w => {
                     const d = new Date(w.rawDateStr);
@@ -255,12 +266,12 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
             </div>
 
             {/* Split layout for List and Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem', height: '750px' }}>
               <div className="list-section glass-panel" style={{ padding: '2rem' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', marginBottom: '1rem' }}>
                   {filter} List
                 </h2>
-                <div className="workout-list" style={{ maxHeight: selectedWorkout ? '400px' : '600px' }}>
+                <div className="workout-list" style={{ flex: 1 }}>
                   {filteredWorkouts.map((workout) => {
                     const localDate = new Date(workout.rawDateStr);
                     const displayDate = localDate.toLocaleDateString();
@@ -304,37 +315,84 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
           </div>
         ) : searchParams.has('start') ? (
           <div className="overview-section" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Chart Panel (Full width) */}
+            {/* Tabs Panel (Full width) */}
             <div className="glass-panel" style={{ padding: '2rem' }}>
-              <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem' }}>
-                Workout Distribution
-              </h2>
-              {initialWorkouts.length > 0 ? (
-                <DonutChart data={distributionData} />
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                <button 
+                  className={`chip ${overviewTab === 'chart' ? 'active' : ''}`}
+                  onClick={() => setOverviewTab('chart')}
+                >
+                  Distribution Chart
+                </button>
+                <button 
+                  className={`chip ${overviewTab === 'calendar' ? 'active' : ''}`}
+                  onClick={() => setOverviewTab('calendar')}
+                >
+                  Activity Calendar
+                </button>
+              </div>
+
+              {overviewTab === 'chart' ? (
+                initialWorkouts.length > 0 ? (
+                  <DonutChart data={distributionData} />
+                ) : (
+                  <div className="empty-state" style={{ padding: '3rem 0' }}>
+                    <p>No workouts found for this period.</p>
+                  </div>
+                )
               ) : (
-                <div className="empty-state" style={{ padding: '3rem 0' }}>
-                  <p>No workouts found for this period.</p>
-                </div>
+                <WorkoutCalendar 
+                  workouts={initialWorkouts} 
+                  selectedType="Total" 
+                  activeDateStr={activeDateStr}
+                  onDayClick={(dateStr) => {
+                    const targetWorkouts = initialWorkouts.filter(w => {
+                      const d = new Date(w.rawDateStr);
+                      const mm = String(d.getMonth() + 1).padStart(2, '0');
+                      const dd = String(d.getDate()).padStart(2, '0');
+                      const key = `${d.getFullYear()}-${mm}-${dd}`;
+                      return key === dateStr;
+                    });
+
+                    if (targetWorkouts.length > 0) {
+                      setSelectedWorkout(targetWorkouts[0]);
+                      setHighlightedDate(dateStr);
+                      
+                      setTimeout(() => {
+                        document.getElementById(`workout-card-${targetWorkouts[0].id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 50);
+                      
+                      setTimeout(() => {
+                        setHighlightedDate(null);
+                      }, 2000);
+                    }
+                  }}
+                />
               )}
             </div>
 
             {/* Split layout for List and Details */}
             {initialWorkouts.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem', height: '750px' }}>
                 {/* All Sessions List Panel */}
                 <div className="glass-panel list-section" style={{ padding: '2rem' }}>
                   <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>All Sessions</h2>
-                  <div className="workout-list" style={{ maxHeight: selectedWorkout ? '400px' : '500px' }}>
+                  <div className="workout-list" style={{ flex: 1 }}>
                     {initialWorkouts.map((workout) => {
                       const localDate = new Date(workout.rawDateStr);
                       const displayDate = localDate.toLocaleDateString();
                       const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                       const isToday = localDate.toDateString() === new Date().toDateString();
                       
+                      const mm = String(localDate.getMonth() + 1).padStart(2, '0');
+                      const dd = String(localDate.getDate()).padStart(2, '0');
+                      const currentWorkoutDateStr = `${localDate.getFullYear()}-${mm}-${dd}`;
+                      
                       return (
                         <div 
+                          id={`workout-card-${workout.id}`}
                           key={workout.id} 
-                          className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''}`} 
+                          className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''} ${highlightedDate === currentWorkoutDateStr ? 'highlight-flash' : ''}`} 
                           onClick={() => setSelectedWorkout(workout)}
                         >
                         <div className="workout-card-header" style={{ marginBottom: '0.5rem' }}>
