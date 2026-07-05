@@ -60,6 +60,8 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     }
     setIsCustomDate(false);
     
+    if (days === 0) setOverviewTab('chart');
+    
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - days);
@@ -67,6 +69,11 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     // Update URL
     router.push(`/?start=${start.toISOString().split('T')[0]}&end=${end.toISOString().split('T')[0]}`);
   };
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const startParam = searchParams.get('start') || todayStr;
+  const endParam = searchParams.get('end') || todayStr;
+  const isTodayMode = startParam === todayStr && endParam === todayStr;
 
   /**
    * Applies the custom date range selected by the user.
@@ -199,6 +206,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
       {/* Date Selector */}
       <div className="filter-container glass-panel" style={{ marginBottom: '1rem', padding: '1rem' }}>
         <div className="filter-chips">
+          <button className={`chip ${isTodayMode && !isCustomDate ? 'active' : ''}`} onClick={() => handleDateFilter(0)}>Today</button>
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 7*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(7)}>7 Days</button>
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 30*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(30)}>30 Days</button>
           <button className={`chip ${!isCustomDate && searchParams.get('start')?.includes(new Date(Date.now() - 365*86400000).toISOString().split('T')[0]) ? 'active' : ''}`} onClick={() => handleDateFilter(365)}>1 Year</button>
@@ -325,26 +333,28 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
               {renderDetailSection()}
             </div>
           </div>
-        ) : searchParams.has('start') ? (
+        ) : searchParams.has('start') || isTodayMode ? (
           <div className="overview-section" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Tabs Panel (Full width) */}
             <div className="glass-panel" style={{ padding: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <button 
-                  className={`chip ${overviewTab === 'chart' ? 'active' : ''}`}
-                  onClick={() => setOverviewTab('chart')}
-                >
-                  Distribution Chart
-                </button>
-                <button 
-                  className={`chip ${overviewTab === 'calendar' ? 'active' : ''}`}
-                  onClick={() => setOverviewTab('calendar')}
-                >
-                  Activity Calendar
-                </button>
-              </div>
+              {!isTodayMode && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                  <button 
+                    className={`chip ${overviewTab === 'chart' ? 'active' : ''}`}
+                    onClick={() => setOverviewTab('chart')}
+                  >
+                    Distribution Chart
+                  </button>
+                  <button 
+                    className={`chip ${overviewTab === 'calendar' ? 'active' : ''}`}
+                    onClick={() => setOverviewTab('calendar')}
+                  >
+                    Activity Calendar
+                  </button>
+                </div>
+              )}
 
-              {overviewTab === 'chart' ? (
+              {overviewTab === 'chart' || isTodayMode ? (
                 initialWorkouts.length > 0 ? (
                   <DonutChart data={distributionData} onSelect={(label) => setFilter(label)} />
                 ) : (

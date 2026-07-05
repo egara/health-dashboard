@@ -27,10 +27,11 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
     )
   }
 
-  // Read dates from URL (or use the last year by default)
+  // Read dates from URL (or use today by default)
   let startDateObj = new Date();
-  startDateObj.setFullYear(startDateObj.getFullYear() - 1);
+  startDateObj.setHours(0, 0, 0, 0);
   let endDateObj = new Date();
+  endDateObj.setHours(23, 59, 59, 999);
 
   if (searchParams?.start && searchParams?.end) {
     startDateObj = new Date(searchParams.start);
