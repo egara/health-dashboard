@@ -33,7 +33,8 @@ export default function Sidebar() {
                 className="avatar" 
                 width={isCollapsed ? 32 : 48} 
                 height={isCollapsed ? 32 : 48} 
-                style={{ borderRadius: '50%', transition: 'all 0.3s ease' }}
+                style={{ borderRadius: '50%', transition: 'all 0.3s ease', cursor: 'pointer' }}
+                onClick={() => signOut()}
               />
             )}
             <div className="user-info">

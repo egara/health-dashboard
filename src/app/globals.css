@@ -57,3 +57,16 @@ button {
   border: 1px solid var(--border-color);
   border-radius: 16px;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column !important;
+  }
+
+  .main-content {
+    padding: 1rem !important;
+    height: auto;
+    overflow-y: visible;
+  }
+}

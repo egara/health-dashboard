@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Workout } from '@/types';
 import DonutChart from './DonutChart';
@@ -45,6 +45,42 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
   const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
   const [overviewTab, setOverviewTab] = useState<'chart' | 'calendar'>('chart');
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement | Document;
+      const scrollTop = target === document ? window.scrollY : (target as HTMLElement).scrollTop;
+      setShowScrollTop(scrollTop > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (mainContent) mainContent.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('.main-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleWorkoutClick = (workout: Workout) => {
+    setSelectedWorkout(workout);
+    setTimeout(() => {
+      const el = document.getElementById('workout-details-section');
+      if (el && window.innerWidth <= 768) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   // States for custom dates
   const [customStart, setCustomStart] = useState(searchParams.get('start') || '');
@@ -131,7 +167,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
   }, [selectedWorkout]);
 
   const renderDetailSection = () => (
-    <div className="detail-section glass-panel">
+    <div id="workout-details-section" className="detail-section glass-panel">
       {selectedWorkout ? (
         <div className="workout-details">
           <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -292,7 +328,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
             )}
 
             {/* Split layout for List and Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem', height: '750px' }}>
+            <div className={`dynamic-grid ${selectedWorkout ? 'split' : ''}`}>
               <div className="list-section glass-panel" style={{ padding: '2rem' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', marginBottom: '1rem' }}>
                   {filter} List
@@ -313,7 +349,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                         id={`workout-card-${workout.id}`}
                         key={workout.id} 
                         className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''} ${highlightedDate === currentWorkoutDateStr ? 'highlight-flash' : ''}`}
-                        onClick={() => setSelectedWorkout(workout)}
+                        onClick={() => handleWorkoutClick(workout)}
                       >
                         <div className="workout-card-header">
                           <span className="workout-date" suppressHydrationWarning>
@@ -401,7 +437,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
 
             {/* Split layout for List and Details */}
             {initialWorkouts.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: selectedWorkout ? '1fr 1.5fr' : '1fr', gap: '2rem', height: '750px' }}>
+              <div className={`dynamic-grid ${selectedWorkout ? 'split' : ''}`}>
                 {/* All Sessions List Panel */}
                 <div className="glass-panel list-section" style={{ padding: '2rem' }}>
                   <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>All Sessions</h2>
@@ -421,7 +457,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                           id={`workout-card-${workout.id}`}
                           key={workout.id} 
                           className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''} ${highlightedDate === currentWorkoutDateStr ? 'highlight-flash' : ''}`} 
-                          onClick={() => setSelectedWorkout(workout)}
+                          onClick={() => handleWorkoutClick(workout)}
                         >
                         <div className="workout-card-header" style={{ marginBottom: '0.5rem' }}>
                           <span style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -468,6 +504,31 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
           </div>
         )}
       </div>
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            backgroundColor: 'var(--accent-color)',
+            color: '#fff',
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 }
