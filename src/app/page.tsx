@@ -135,13 +135,6 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
   }
 
   const data = await res.json()
-  console.log("\n--- DEBUG NEW GOOGLE HEALTH API ---");
-  console.log("Workouts found:", data.dataPoints?.length || 0);
-  if (data.dataPoints?.length > 0) {
-    console.log("Complete structure of ONE workout to find Cardio Load:");
-    console.log(JSON.stringify(data.dataPoints[0], null, 2));
-  }
-  console.log("-------------------------------------\n");
   
   // Transform data (safely adapted to the new schema)
   const rawDataPoints: GoogleHealthDataPoint[] = data.dataPoints || [];
