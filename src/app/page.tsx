@@ -100,17 +100,45 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
   const filterQuery = encodeURIComponent(`exercise.interval.civil_start_time >= "${startCivil}" AND exercise.interval.civil_start_time < "${endCivil}"`);
   
   // KEY! Add pageSize=500 to avoid the hidden default limit of 25 results from Google
-  const url = `https://health.googleapis.com/v4/users/me/dataTypes/exercise/dataPoints?pageSize=500&filter=${filterQuery}`;
+  const baseUrl = `https://health.googleapis.com/v4/users/me/dataTypes/exercise/dataPoints?pageSize=500&filter=${filterQuery}`;
 
   // Fetch real sessions from Google Health API
-  let res;
+  let allDataPoints: GoogleHealthDataPoint[] = [];
+  let pageToken = "";
+  let hasMore = true;
+
   try {
-    res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`
-      },
-      cache: 'no-store'
-    });
+    while (hasMore) {
+      const url = pageToken ? `${baseUrl}&pageToken=${pageToken}` : baseUrl;
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`
+        },
+        cache: 'no-store'
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Failed to fetch Google Health API", errorText);
+        return (
+          <div style={{padding: '3rem', color: 'var(--danger-color)'}}>
+            <h2>Connection Error to the new API</h2>
+            <p>Make sure you have accepted the new Google Health permissions.</p>
+            <p style={{fontSize: '0.8rem', marginTop: '1rem'}}>{errorText.substring(0, 200)}</p>
+          </div>
+        )
+      }
+
+      const data = await res.json();
+      const rawDataPoints: GoogleHealthDataPoint[] = data.dataPoints || [];
+      allDataPoints = allDataPoints.concat(rawDataPoints);
+
+      if (data.nextPageToken) {
+        pageToken = data.nextPageToken;
+      } else {
+        hasMore = false;
+      }
+    }
   } catch (error) {
     console.error("Network error while fetching from Google Health API", error);
     return (
@@ -122,22 +150,8 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
     )
   }
   
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error("Failed to fetch Google Health API", errorText);
-    return (
-      <div style={{padding: '3rem', color: 'var(--danger-color)'}}>
-        <h2>Connection Error to the new API</h2>
-        <p>Make sure you have accepted the new Google Health permissions.</p>
-        <p style={{fontSize: '0.8rem', marginTop: '1rem'}}>{errorText.substring(0, 200)}</p>
-      </div>
-    )
-  }
-
-  const data = await res.json()
-  
   // Transform data (safely adapted to the new schema)
-  const rawDataPoints: GoogleHealthDataPoint[] = data.dataPoints || [];
+  const rawDataPoints = allDataPoints;
   
   const realWorkouts: Workout[] = rawDataPoints.map((rawPoint, index) => {
     const point: any = rawPoint;
