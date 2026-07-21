@@ -8,6 +8,10 @@ import '../app/Workouts.css';
 
 const getWorkoutIcon = (type: string) => {
   const t = type.toLowerCase();
+  if (t.includes('hiit') || t.includes('interval')) return '🔥';
+  if (t.includes('pilates')) return '🧎‍♀️';
+  if (t.includes('row')) return '🚣‍♂️';
+  if (t.includes('hike')) return '🥾';
   if (t.includes('run')) return '🏃‍♂️';
   if (t.includes('walk')) return '🚶‍♂️';
   if (t.includes('cycl') || t.includes('bik') || t.includes('spin')) return '🚴‍♂️';
@@ -15,9 +19,9 @@ const getWorkoutIcon = (type: string) => {
   if (t.includes('weight') || t.includes('strength')) return '🏋️‍♂️';
   if (t.includes('yoga')) return '🧘‍♂️';
   if (t.includes('elliptical')) return '⛷️';
-  if (t.includes('hike') || t.includes('climb')) return '🧗‍♂️';
+  if (t.includes('climb')) return '🧗‍♂️';
+  if (t.includes('cardio') || t.includes('aerobic')) return '❤️';
   if (t.includes('dance')) return '💃';
-  if (t.includes('aerobic')) return '🤸‍♂️';
   if (t.includes('workout')) return '💪';
   return '🏅';
 };
@@ -239,6 +243,89 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
     </div>
   );
 
+  const renderWorkoutGroups = (workoutsToRender: Workout[]) => {
+    const groups: { dateStr: string, displayDate: string, isToday: boolean, workouts: Workout[] }[] = [];
+    workoutsToRender.forEach(w => {
+      const localDate = new Date(w.rawDateStr);
+      const mm = String(localDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(localDate.getDate()).padStart(2, '0');
+      const dateStr = `${localDate.getFullYear()}-${mm}-${dd}`;
+      
+      let lastGroup = groups[groups.length - 1];
+      if (!lastGroup || lastGroup.dateStr !== dateStr) {
+        groups.push({
+          dateStr,
+          displayDate: localDate.toLocaleDateString(),
+          isToday: localDate.toDateString() === new Date().toDateString(),
+          workouts: [w]
+        });
+      } else {
+        lastGroup.workouts.push(w);
+      }
+    });
+
+    return groups.map(group => (
+      <div 
+        key={group.dateStr} 
+        className={`day-group ${highlightedDate === group.dateStr ? 'highlight-flash' : ''}`}
+        style={{ 
+          marginBottom: '1.5rem', 
+          border: '1px solid rgba(255,255,255,0.05)', 
+          borderRadius: '16px', 
+          padding: '1rem', 
+          background: 'rgba(255,255,255,0.02)' 
+        }}
+      >
+        <div suppressHydrationWarning style={{ marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+          {group.isToday && <span className="today-badge" style={{ fontSize: '0.7rem' }}>TODAY</span>}
+          {group.displayDate}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {group.workouts.map((workout) => {
+            const localDate = new Date(workout.rawDateStr);
+            const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return (
+              <div 
+                id={`workout-card-${workout.id}`}
+                key={workout.id} 
+                className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''}`}
+                onClick={() => handleWorkoutClick(workout)}
+                style={{ margin: 0 }}
+              >
+                <div className="workout-card-header" style={{ marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {getWorkoutIcon(workout.type)} {workout.type}
+                  </span>
+                  <span className="workout-date" suppressHydrationWarning>
+                    {displayTime}
+                  </span>
+                </div>
+                <div className="workout-card-body" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                  <div className="metric">
+                    <span className="metric-value" style={{ color: getCardioLoadColor(workout.cardioLoad) }}>{workout.cardioLoad}</span>
+                    <span className="metric-label">Cardio Load</span>
+                  </div>
+                  {workout.duration && (
+                    <div className="metric">
+                      <span className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{workout.duration}</span>
+                      <span className="metric-label">Duration</span>
+                    </div>
+                  )}
+                  {workout.calories > 0 && (
+                    <div className="metric">
+                      <span className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{workout.calories}</span>
+                      <span className="metric-label">Kcal</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <div className="workouts-container">
       <header className="page-header" style={{ marginBottom: '1rem' }}>
@@ -334,38 +421,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                   {filter} List
                 </h2>
                 <div className="workout-list" style={{ flex: 1 }}>
-                  {filteredWorkouts.map((workout) => {
-                    const localDate = new Date(workout.rawDateStr);
-                    const displayDate = localDate.toLocaleDateString();
-                    const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const isToday = localDate.toDateString() === new Date().toDateString();
-                    
-                    const mm = String(localDate.getMonth() + 1).padStart(2, '0');
-                    const dd = String(localDate.getDate()).padStart(2, '0');
-                    const currentWorkoutDateStr = `${localDate.getFullYear()}-${mm}-${dd}`;
-                    
-                    return (
-                      <div 
-                        id={`workout-card-${workout.id}`}
-                        key={workout.id} 
-                        className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''} ${highlightedDate === currentWorkoutDateStr ? 'highlight-flash' : ''}`}
-                        onClick={() => handleWorkoutClick(workout)}
-                      >
-                        <div className="workout-card-header">
-                          <span className="workout-date" suppressHydrationWarning>
-                            {isToday && <span className="today-badge">TODAY</span>}
-                            {displayDate} - {displayTime}
-                          </span>
-                        </div>
-                        <div className="workout-card-body">
-                          <div className="metric">
-                            <span className="metric-value" style={{ color: getCardioLoadColor(workout.cardioLoad) }}>{workout.cardioLoad}</span>
-                            <span className="metric-label">Cardio Load</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {renderWorkoutGroups(filteredWorkouts)}
                   {filteredWorkouts.length === 0 && (
                     <p className="empty-state">No workouts found for this type.</p>
                   )}
@@ -442,53 +498,7 @@ export default function WorkoutsClient({ initialWorkouts }: { initialWorkouts: W
                 <div className="glass-panel list-section" style={{ padding: '2rem' }}>
                   <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>All Sessions</h2>
                   <div className="workout-list" style={{ flex: 1 }}>
-                    {initialWorkouts.map((workout) => {
-                      const localDate = new Date(workout.rawDateStr);
-                      const displayDate = localDate.toLocaleDateString();
-                      const displayTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                      const isToday = localDate.toDateString() === new Date().toDateString();
-                      
-                      const mm = String(localDate.getMonth() + 1).padStart(2, '0');
-                      const dd = String(localDate.getDate()).padStart(2, '0');
-                      const currentWorkoutDateStr = `${localDate.getFullYear()}-${mm}-${dd}`;
-                      
-                      return (
-                        <div 
-                          id={`workout-card-${workout.id}`}
-                          key={workout.id} 
-                          className={`workout-card ${selectedWorkout?.id === workout.id ? 'selected' : ''} ${isToday ? 'today' : ''} ${highlightedDate === currentWorkoutDateStr ? 'highlight-flash' : ''}`} 
-                          onClick={() => handleWorkoutClick(workout)}
-                        >
-                        <div className="workout-card-header" style={{ marginBottom: '0.5rem' }}>
-                          <span style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {getWorkoutIcon(workout.type)} {workout.type}
-                          </span>
-                          <span className="workout-date" suppressHydrationWarning>
-                            {isToday && <span className="today-badge">TODAY</span>}
-                            {displayDate} - {displayTime}
-                          </span>
-                        </div>
-                        <div className="workout-card-body" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-                          <div className="metric">
-                            <span className="metric-value" style={{ color: getCardioLoadColor(workout.cardioLoad) }}>{workout.cardioLoad}</span>
-                            <span className="metric-label">Cardio Load</span>
-                          </div>
-                          {workout.duration && (
-                            <div className="metric">
-                              <span className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{workout.duration}</span>
-                              <span className="metric-label">Duration</span>
-                            </div>
-                          )}
-                          {workout.calories > 0 && (
-                            <div className="metric">
-                              <span className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>{workout.calories}</span>
-                              <span className="metric-label">Kcal</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                    })}
+                    {renderWorkoutGroups(initialWorkouts)}
                   </div>
                 </div>
                 
