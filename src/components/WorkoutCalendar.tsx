@@ -157,7 +157,7 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick, ac
               title={count > 0 ? `${count} ${selectedType === 'Total' ? 'workout' : selectedType} session(s)` : 'No workouts'}
             >
               <span style={{ fontSize: '1.2rem' }}>{day}</span>
-              {count > 1 && (
+              {count > 0 && (
                 <span style={{ position: 'absolute', bottom: '4px', right: '6px', fontSize: '0.7rem', color: '#fff', background: 'rgba(0,0,0,0.3)', padding: '2px 4px', borderRadius: '4px' }}>x{count}</span>
               )}
             </div>
