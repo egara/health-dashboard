@@ -178,6 +178,8 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
       const lower = exerciseName.toLowerCase();
       if (lower.includes('cardio') || lower.includes('aerobic')) {
         exerciseName = 'Cardio';
+      } else if (lower.includes('strength') || lower.includes('strengh')) {
+        exerciseName = 'Strength';
       } else {
         exerciseName = exerciseName.charAt(0).toUpperCase() + exerciseName.slice(1).toLowerCase();
       }
