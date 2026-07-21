@@ -8,6 +8,10 @@ import '../app/Workouts.css';
 
 const getWorkoutIcon = (type: string) => {
   const t = type.toLowerCase();
+  if (t.includes('hiit') || t.includes('interval')) return '🔥';
+  if (t.includes('pilates')) return '🧎‍♀️';
+  if (t.includes('row')) return '🚣‍♂️';
+  if (t.includes('hike')) return '🥾';
   if (t.includes('run')) return '🏃‍♂️';
   if (t.includes('walk')) return '🚶‍♂️';
   if (t.includes('cycl') || t.includes('bik') || t.includes('spin')) return '🚴‍♂️';
@@ -15,7 +19,7 @@ const getWorkoutIcon = (type: string) => {
   if (t.includes('weight') || t.includes('strength')) return '🏋️‍♂️';
   if (t.includes('yoga')) return '🧘‍♂️';
   if (t.includes('elliptical')) return '⛷️';
-  if (t.includes('hike') || t.includes('climb')) return '🧗‍♂️';
+  if (t.includes('climb')) return '🧗‍♂️';
   if (t.includes('dance')) return '💃';
   if (t.includes('aerobic')) return '🤸‍♂️';
   if (t.includes('workout')) return '💪';
