@@ -23,12 +23,15 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick, ac
         const month = parseInt(parts[1], 10) - 1;
         
         // Check if we need to navigate
-        if (currentDate.getFullYear() !== year || currentDate.getMonth() !== month) {
-          setCurrentDate(new Date(year, month, 1));
-        }
+        setCurrentDate(prev => {
+          if (prev.getFullYear() !== year || prev.getMonth() !== month) {
+            return new Date(year, month, 1);
+          }
+          return prev;
+        });
       }
     }
-  }, [activeDateStr, currentDate]);
+  }, [activeDateStr]);
 
   // Map workouts to a dictionary by YYYY-MM-DD
   const workoutDays = useMemo(() => {
