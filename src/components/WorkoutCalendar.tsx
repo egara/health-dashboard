@@ -113,11 +113,19 @@ export default function WorkoutCalendar({ workouts, selectedType, onDayClick, ac
           let shadow = 'none';
 
           if (count > 0) {
-            bg = 'var(--accent-color)';
+            if (count === 1) {
+              bg = '#4CAF50'; // Green
+              shadow = '0 4px 12px rgba(76, 175, 80, 0.4)';
+            } else if (count <= 3) {
+              bg = '#FFC107'; // Amber
+              shadow = '0 4px 12px rgba(255, 193, 7, 0.4)';
+            } else {
+              bg = '#F44336'; // Red
+              shadow = '0 4px 12px rgba(244, 67, 54, 0.4)';
+            }
             textColor = '#fff';
             border = isToday ? '2px solid var(--success-color)' : '1px solid rgba(255,255,255,0.3)';
             cursor = 'pointer';
-            shadow = '0 4px 12px rgba(59, 130, 246, 0.4)'; // using standard blue accent glow
           } else if (isToday) {
             bg = 'rgba(255,255,255,0.1)';
             border = '2px solid var(--success-color)';
