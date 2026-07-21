@@ -20,8 +20,8 @@ const getWorkoutIcon = (type: string) => {
   if (t.includes('yoga')) return '🧘‍♂️';
   if (t.includes('elliptical')) return '⛷️';
   if (t.includes('climb')) return '🧗‍♂️';
+  if (t.includes('cardio') || t.includes('aerobic')) return '❤️';
   if (t.includes('dance')) return '💃';
-  if (t.includes('aerobic')) return '🤸‍♂️';
   if (t.includes('workout')) return '💪';
   return '🏅';
 };

@@ -175,7 +175,12 @@ export default async function Home(props: { searchParams?: { [key: string]: stri
     let exerciseName = exerciseData.exerciseType || "Workout";
     // If it's uppercase, format it nicely
     if (typeof exerciseName === 'string') {
-      exerciseName = exerciseName.charAt(0).toUpperCase() + exerciseName.slice(1).toLowerCase();
+      const lower = exerciseName.toLowerCase();
+      if (lower.includes('cardio') || lower.includes('aerobic')) {
+        exerciseName = 'Cardio';
+      } else {
+        exerciseName = exerciseName.charAt(0).toUpperCase() + exerciseName.slice(1).toLowerCase();
+      }
     }
     
     const metrics = exerciseData.metricsSummary || {};
